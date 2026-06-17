@@ -37,6 +37,12 @@ svg.icon.lg { width:22px; height:22px; vertical-align:-4px; }
   font-size:0.92rem; outline:none; flex:1 1 140px; min-width:0;
 }
 .topbar input:focus { border-color:var(--primary); }
+.search-btn {
+  background:var(--primary); color:#121212; border:none;
+  padding:8px 12px; border-radius:var(--radius); font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  min-width:40px; flex-shrink:0;
+}
 .lang-btn {
   background:var(--surface2); border:1px solid var(--border);
   color:var(--on-dim); padding:5px 10px; border-radius:6px;
@@ -234,6 +240,7 @@ svg.icon.lg { width:22px; height:22px; vertical-align:-4px; }
   .topbar { padding:6px 8px; gap:6px; }
   .topbar h1 { font-size:1rem; }
   .topbar input { font-size:1rem; padding:10px 12px; }
+  .search-btn { padding:10px 12px; }
   .lang-btn { font-size:0.85rem; padding:6px 12px; }
   .mymeds { padding:6px 8px; }
   .med-card { min-width:140px; padding:8px 12px; }
@@ -266,6 +273,9 @@ svg.icon.lg { width:22px; height:22px; vertical-align:-4px; }
   <span class="status-dot online" id="statusDot" title="Online"></span>
   <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   <input type="text" id="searchInput" placeholder="" autofocus>
+  <button class="search-btn" id="searchBtn" onclick="doSearch()" aria-label="Search">
+    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+  </button>
 </div>
 
 <div class="mymeds" id="myMeds"></div>
@@ -320,6 +330,8 @@ svg.icon.lg { width:22px; height:22px; vertical-align:-4px; }
 const I = {
   en: {
     searchPH:'Search medications (e.g. sertraline, ibuprofen)...',
+    searchBtn:'Search',
+    unmappedChinese:'No English mapping for this Chinese drug name yet',
     emptyHint:'Search for a medication to begin',
     detailHint:'Select a medication to view details',
     noResults:'No results found',
@@ -369,6 +381,8 @@ const I = {
   },
   zh: {
     searchPH:'搜索药品（如 sertraline, ibuprofen）…',
+    searchBtn:'搜索',
+    unmappedChinese:'暂未收录这个中文药名的英文映射',
     emptyHint:'搜索药品以开始',
     detailHint:'选择一个药品查看详情',
     noResults:'未找到结果',
@@ -628,23 +642,59 @@ let schedule = [];
 
 const CJK = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/;
 let zhMap = [];
+const CORE_ZH_MAP = [
+  { en:'sertraline', zh:['舍曲林','盐酸舍曲林','左洛复'] },
+  { en:'fluoxetine', zh:['氟西汀','盐酸氟西汀','百优解'] },
+  { en:'paroxetine', zh:['帕罗西汀','盐酸帕罗西汀','赛乐特'] },
+  { en:'escitalopram', zh:['艾司西酞普兰','草酸艾司西酞普兰','来士普'] },
+  { en:'citalopram', zh:['西酞普兰','氢溴酸西酞普兰','喜普妙'] },
+  { en:'fluvoxamine', zh:['氟伏沙明','马来酸氟伏沙明','兰释'] },
+  { en:'venlafaxine', zh:['文拉法辛','盐酸文拉法辛','怡诺思'] },
+  { en:'duloxetine', zh:['度洛西汀','盐酸度洛西汀','欣百达'] },
+  { en:'bupropion', zh:['安非他酮','盐酸安非他酮'] },
+  { en:'mirtazapine', zh:['米氮平','瑞美隆'] },
+  { en:'trazodone', zh:['曲唑酮','盐酸曲唑酮'] },
+  { en:'lithium', zh:['锂盐','碳酸锂'] },
+  { en:'valproate', zh:['丙戊酸','丙戊酸钠','德巴金'] },
+  { en:'lamotrigine', zh:['拉莫三嗪','利必通'] },
+  { en:'carbamazepine', zh:['卡马西平','得理多'] },
+  { en:'risperidone', zh:['利培酮','维思通'] },
+  { en:'olanzapine', zh:['奥氮平','再普乐'] },
+  { en:'quetiapine', zh:['喹硫平','富马酸喹硫平','思瑞康'] },
+  { en:'aripiprazole', zh:['阿立哌唑','安律凡'] },
+  { en:'paliperidone', zh:['帕利哌酮','芮达'] },
+  { en:'clozapine', zh:['氯氮平'] },
+  { en:'haloperidol', zh:['氟哌啶醇'] },
+  { en:'diazepam', zh:['地西泮','安定'] },
+  { en:'lorazepam', zh:['劳拉西泮','氯羟安定'] },
+  { en:'alprazolam', zh:['阿普唑仑','佳静安定'] },
+  { en:'clonazepam', zh:['氯硝西泮','氯硝安定'] },
+  { en:'zolpidem', zh:['唑吡坦','酒石酸唑吡坦','思诺思'] },
+  { en:'zopiclone', zh:['佐匹克隆'] },
+  { en:'methylphenidate', zh:['哌甲酯','盐酸哌甲酯','利他林','专注达'] },
+  { en:'atomoxetine', zh:['托莫西汀','盐酸托莫西汀','择思达'] }
+];
 
 function hasCJK(s) { return CJK.test(s); }
 function matchZh(q) {
-  if (!q || !zhMap.length) return null;
+  if (!q) return null;
   const lq = q.toLowerCase();
-  for (const e of zhMap) { if (!e.zh) continue; for (const n of e.zh) { if (n.includes(lq) || lq.includes(n)) return { en:e.en, zh:n, cat:e.category||'' }; } }
+  for (const e of [...CORE_ZH_MAP, ...zhMap]) { if (!e.zh) continue; for (const n of e.zh) { if (n.includes(lq) || lq.includes(n)) return { en:e.en, zh:n, cat:e.category||'' }; } }
   return null;
 }
 function resolveQuery(q) {
-  if (hasCJK(q)) { const m = matchZh(q); if (m) { window._zh=m; return m.en; } window._zh=null; return q; }
+  if (hasCJK(q)) { const m = matchZh(q); if (m) { window._zh=m; return m.en; } window._zh=null; return null; }
   window._zh = null; return q;
 }
 
 async function fdaFetch(ep, search, limit=20) {
   const url = `${FDA}/${ep}?search=${encodeURIComponent(search)}&limit=${limit}&skip=0`;
   const resp = await fetch(url);
-  if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.error?.message||`HTTP ${resp.status}`); }
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({}));
+    if (resp.status === 404 || err.error?.code === 'NOT_FOUND') return { results:[], meta:{ results:{ total:0 } }, retrieved_at:new Date().toISOString(), request_url:url, endpoint:ep, search_query:search };
+    throw new Error(err.error?.message||`HTTP ${resp.status}`);
+  }
   const data = await resp.json();
   return { results: data.results||[], meta: data.meta||{}, retrieved_at: new Date().toISOString(), request_url: url.replace(/(api_key=)[^&]+/,'$1***'), endpoint:ep, search_query:search };
 }
@@ -833,10 +883,18 @@ async function doSearch() {
   if (!raw) return;
   const q = resolveQuery(raw);
   const el = document.getElementById('panelList');
+  if (!q) {
+    el.innerHTML = `<div class="empty-state"><p>${t('unmappedChinese')}</p></div>`;
+    if (isMobile()) switchTab('list');
+    return;
+  }
   el.innerHTML = `<div class="empty-state"><div class="spinner"></div><p>${t('searching')}</p></div>`;
   if (isMobile()) switchTab('list');
   try {
-    const env = await fdaFetch('drug/ndc.json', `brand_name:"${q}"+generic_name:"${q}"`, 20);
+    let env = await fdaFetch('drug/ndc.json', `brand_name:"${q}"+generic_name:"${q}"`, 20);
+    if (!env.results.length && !hasCJK(q)) {
+      env = await fdaFetch('drug/ndc.json', `brand_name:${q}+generic_name:${q}`, 20);
+    }
     window._searchResults = env.results; window._searchMeta = env.meta; window._searchUrl = env.request_url;
     renderResults(env.results, env.meta);
     if (env.results.length>0) { selectMed(0); drawChart(); }

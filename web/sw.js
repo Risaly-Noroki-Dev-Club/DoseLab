@@ -1,4 +1,4 @@
-const CACHE = 'doselab-v2';
+const CACHE = 'doselab-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -21,6 +21,18 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('api.fda.gov')) return;
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        if (resp.ok) {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put('/index.html', clone));
+        }
+        return resp;
+      }).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(resp => {
