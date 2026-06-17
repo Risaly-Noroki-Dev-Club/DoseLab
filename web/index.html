@@ -183,7 +183,7 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
   .panel { height:auto !important; max-height:none !important; overflow:visible; }
   .panel-left, .panel-right { width:100% !important; max-height:none !important; border:none !important; }
   .panel-left { min-height:60vh; }
-  .chart-area { height:70vh; height:70dvh; min-height:320px; }
+  .chart-area { height:75vh; height:75dvh; min-height:340px; }
   .topbar { padding:8px 10px; gap:6px; }
   .topbar h1 { font-size:1.1rem; }
   .topbar .search-row { flex:1 1 100%; order:3; }
@@ -617,27 +617,27 @@ function drawChart() {
   if (parent.offsetParent === null) return;
   const rect = parent.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
+  const W = rect.width, H = rect.height;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
 
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
 
   const halfLife = pkParams?.half_life_hours || 26;
   buildDoseSchedule(simHours);
 
-  const cssW = rect.width;
-  const narrow = cssW < 500;
-  const fs = narrow ? 13 : 12;
-  const fsSm = narrow ? 11 : 10;
+  const narrow = W < 500;
+  const fontSize = narrow ? 14 : 12;
+  const fontSizeSmall = narrow ? 12 : 10;
   const pad = {
-    top: narrow ? 42 : 38,
-    right: narrow ? 18 : 30,
-    bottom: narrow ? 58 : 50,
-    left: narrow ? 52 : 62
+    top: narrow ? 44 : 36,
+    right: narrow ? 16 : 28,
+    bottom: narrow ? 62 : 52,
+    left: narrow ? 56 : 64
   };
   const pw = W - pad.left - pad.right;
   const ph = H - pad.top - pad.bottom;
@@ -652,20 +652,20 @@ function drawChart() {
   function ty(c) { return pad.top + (1 - c / yMax) * ph; }
 
   const tickH = Math.max(1, Math.floor(simHours / (narrow ? 3 : 5)));
-  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = dpr < 2 ? 1 : 0.7;
-  ctx.fillStyle = '#999'; ctx.font = `${narrow ? 12 : 11}px monospace`; ctx.textAlign = 'center';
+  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 0.7;
+  ctx.fillStyle = '#999'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'center';
   for (let i = 0; i <= simHours; i += tickH) {
     const x = tx(i);
     ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
-    ctx.fillText(`${i}h`, x, H - pad.bottom + (narrow ? 18 : 14));
+    ctx.fillText(`${i}h`, x, H - pad.bottom + (narrow ? 20 : 16));
   }
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#999'; ctx.font = `${narrow ? 12 : 11}px monospace`;
+
+  ctx.textAlign = 'right'; ctx.font = `${fontSizeSmall}px monospace`;
   for (let i = 0; i <= 4; i++) {
     const y = ty(yMax * i / 4);
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
     const val = yMax * i / 4;
-    ctx.fillText(`${val < 10 ? val.toFixed(1) : val.toFixed(0)}`, pad.left - (narrow ? 7 : 8), y + 4);
+    ctx.fillText(`${val < 10 ? val.toFixed(1) : val.toFixed(0)}`, pad.left - 6, y + (fontSizeSmall / 3));
   }
 
   if (pkParams?.half_life_hours) {
@@ -676,22 +676,22 @@ function drawChart() {
     ctx.beginPath(); ctx.moveTo(pad.left, ty(minT)); ctx.lineTo(W - pad.right, ty(minT)); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pad.left, ty(maxT)); ctx.lineTo(W - pad.right, ty(maxT)); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(76,175,80,0.8)'; ctx.font = `${fsSm}px monospace`; ctx.textAlign = 'left';
-    ctx.fillText(t('therapeuticWindow'), pad.left + 4, ty(maxT) - 5);
+    ctx.fillStyle = 'rgba(76,175,80,0.8)'; ctx.font = `${fontSizeSmall - 1}px monospace`; ctx.textAlign = 'left';
+    ctx.fillText(t('therapeuticWindow'), pad.left + 4, ty(maxT) - 6);
   }
 
   schedule.forEach(d => {
     const x = tx(d.time);
-    ctx.strokeStyle = 'rgba(144,202,249,0.3)'; ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(144,202,249,0.3)'; ctx.lineWidth = 1;
     ctx.setLineDash([2, 5]);
     ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#90caf9'; ctx.font = `${narrow ? 12 : 11}px monospace`; ctx.textAlign = 'center';
-    ctx.fillText(`${d.dose}mg`, x, H - pad.bottom + (narrow ? 36 : 30));
+    ctx.fillStyle = '#90caf9'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'center';
+    ctx.fillText(`${d.dose}mg`, x, H - pad.bottom + (narrow ? 40 : 32));
   });
 
-  ctx.strokeStyle = '#90caf9'; ctx.lineWidth = narrow ? 3 : 2.5;
-  ctx.shadowColor = 'rgba(144,202,249,0.25)'; ctx.shadowBlur = narrow ? 6 : 4;
+  ctx.strokeStyle = '#90caf9'; ctx.lineWidth = narrow ? 2.5 : 2;
+  ctx.shadowColor = 'rgba(144,202,249,0.3)'; ctx.shadowBlur = 8;
   ctx.beginPath();
   for (let t = 0; t <= simHours; t += 0.3) {
     const x = tx(t), y = ty(concentration(t, halfLife));
@@ -705,17 +705,17 @@ function drawChart() {
     const peakT = lastDose + (pkParams.tmax_hours ? parseFloat(pkParams.tmax_hours) : 5);
     if (peakT <= simHours) {
       const px = tx(peakT), py = ty(concentration(peakT, halfLife));
-      ctx.fillStyle = '#ff9800'; ctx.shadowColor = 'rgba(255,152,0,0.4)'; ctx.shadowBlur = 6;
-      ctx.beginPath(); ctx.arc(px, py, narrow ? 5 : 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff9800'; ctx.shadowColor = 'rgba(255,152,0,0.5)'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(px, py, narrow ? 6 : 5, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.fillStyle = '#ffb74d'; ctx.font = `${narrow ? 13 : 11}px monospace`;
-      ctx.fillText(t('peak'), px + 8, py - 4);
+      ctx.fillStyle = '#ffb74d'; ctx.font = `${fontSize}px monospace`;
+      ctx.fillText(t('peak'), px + 8, py - 5);
     }
   }
 
-  ctx.fillStyle = '#a0a0a0'; ctx.font = `${narrow ? 12 : 11}px monospace`; ctx.textAlign = 'right';
-  const curveLabel = (pkParams?.half_life_hours ? `t½ = ${pkParams.half_life_hours} h` : '') + `  ·  ${schedule.length} ${t('doses')}`;
-  ctx.fillText(curveLabel, W - pad.right - 2, pad.top - 8);
+  ctx.fillStyle = '#a0a0a0'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'right';
+  const tHalfLabel = pkParams?.half_life_hours ? `t½ = ${pkParams.half_life_hours} h  ·  ` : '';
+  ctx.fillText(`${tHalfLabel}${schedule.length} ${t('doses')}`, W - pad.right - 2, pad.top - 10);
 
   const metaEl = document.getElementById('metaFooter');
   const ndcUp = window._searchMeta?.last_updated || '—';
