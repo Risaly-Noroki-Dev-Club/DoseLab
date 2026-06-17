@@ -13,3 +13,10 @@ Thumbs.db
 
 # Environment
 .env
+
+# Query output (experimental, cached)
+/data/
+
+# Python
+__pycache__/
+
