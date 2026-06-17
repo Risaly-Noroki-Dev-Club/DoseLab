@@ -73,7 +73,7 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
 .layout { display:flex; height:calc(100vh - 52px); height:calc(100dvh - 52px); }
 .panel { overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .panel-left { width:380px; border-right:1px solid var(--border); flex-shrink:0; }
-.panel-right { flex:1; display:flex; flex-direction:column; }
+.right-col { flex:1; display:flex; flex-direction:column; min-width:0; }
 
 /* Tab panels (mobile) */
 .tab-panel { display:block; }
@@ -127,7 +127,7 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
 
 /* ── Chart area ─────────────────────────── */
 .chart-area {
-  flex:1; min-height:220px; position:relative; background:var(--bg);
+  flex:1; min-height:220px; position:relative;
 }
 .chart-area canvas { width:100%; height:100%; display:block; }
 
@@ -179,7 +179,8 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
 @media (max-width:749px) {
   .tab-bar { display:flex; }
   .layout { display:block; height:auto; }
-  .panel { height:auto !important; max-height:none !important; }
+  .right-col { display:contents; }
+  .panel { height:auto !important; max-height:none !important; overflow:visible; }
   .panel-left, .panel-right { width:100% !important; max-height:none !important; border:none !important; }
   .panel-left { min-height:60vh; }
   .chart-area { height:60vh; height:60dvh; min-height:280px; }
@@ -239,11 +240,13 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
       <p id="emptyHint"></p>
     </div>
   </div>
-  <div class="panel panel-right tab-panel" id="panelDetail">
-    <div class="detail-section" id="detailPanel">
-      <div class="empty-state"><p id="detailHint"></p></div>
+  <div class="right-col">
+    <div class="panel tab-panel" id="panelDetail">
+      <div class="detail-section" id="detailPanel">
+        <div class="empty-state"><p id="detailHint"></p></div>
+      </div>
     </div>
-    <div class="chart-area tab-panel" id="panelChart">
+    <div class="panel chart-area tab-panel" id="panelChart">
       <canvas id="pkChart"></canvas>
     </div>
     <div class="sim-controls" id="simControls"></div>
@@ -385,14 +388,14 @@ function switchTab(name) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
     return;
   }
-  document.querySelectorAll('.tab-panel').forEach(p => {
-    const parentTab = p.closest('[id]')?.id;
-    if (parentTab === 'panelList') p.classList.toggle('hidden', name !== 'list');
-    else if (parentTab === 'panelDetail' || parentTab === 'panelChart') {
-      if (p.id === 'panelChart') p.classList.toggle('hidden', name !== 'chart');
-      else p.classList.toggle('hidden', name === 'chart');
-    }
-  });
+  const panels = {
+    list: document.getElementById('panelList'),
+    detail: document.getElementById('panelDetail'),
+    chart: document.getElementById('panelChart'),
+  };
+  for (const [key, el] of Object.entries(panels)) {
+    if (el) el.classList.toggle('hidden', key !== name);
+  }
   if (name === 'chart') setTimeout(drawChart, 100);
 }
 
