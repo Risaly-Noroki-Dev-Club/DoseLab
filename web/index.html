@@ -382,7 +382,10 @@ function updateAllTexts() {
 /* ── Mobile tab switching ────────────────── */
 function isMobile() { return window.innerWidth < 750; }
 
+let mobileTab = 'list';
+
 function switchTab(name) {
+  mobileTab = name;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   if (!isMobile()) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
@@ -753,15 +756,18 @@ document.getElementById('searchInput').addEventListener('keydown', e => {
 });
 
 let resizeTimer;
+let lastWasMobile = isMobile();
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    if (!isMobile()) {
+    const nowMobile = isMobile();
+    if (nowMobile && !lastWasMobile) {
+      switchTab(mobileTab || 'list');
+    } else if (!nowMobile) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
-    } else {
-      switchTab('list');
     }
-    if (selectedMed || window._searchResults?.length) drawChart();
+    lastWasMobile = nowMobile;
+    if (document.getElementById('panelChart').offsetParent !== null) drawChart();
   }, 150);
 });
 
