@@ -3,215 +3,257 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>DoseLab — Medication PK Lab</title>
+<meta name="theme-color" content="#121212">
+<link rel="manifest" href="/manifest.json">
+<title>DoseLab</title>
 <style>
 :root {
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --surface2: #2a2a2a;
-  --primary: #90caf9;
-  --on-surface: #e0e0e0;
-  --on-surface-dim: #a0a0a0;
-  --error: #cf6679;
-  --border: #333;
-  --radius: 8px;
-  font-family: 'Segoe UI', 'Roboto', 'Noto Sans SC', sans-serif;
+  --bg:#121212; --surface:#1e1e1e; --surface2:#2a2a2a;
+  --primary:#90caf9; --on-surface:#e0e0e0; --on-dim:#a0a0a0;
+  --error:#cf6679; --warn:#ffb74d; --safe:#81c784; --border:#333;
+  --radius:10px;
+  font-family:'Segoe UI','Roboto','Noto Sans SC',sans-serif;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-height:100dvh; }
+body { background:var(--bg); color:var(--on-surface); min-height:100dvh; }
+svg.icon { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-3px; }
+svg.icon.lg { width:22px; height:22px; vertical-align:-4px; }
 
-/* ── Top bar ────────────────────────────── */
+/* ── Top bar ─────────────────────── */
 .topbar {
   background:var(--surface); padding:8px 12px;
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center; gap:8px;
   border-bottom:1px solid var(--border);
   position:sticky; top:0; z-index:20; flex-wrap:wrap;
 }
-.topbar h1 { font-size:1rem; font-weight:700; color:var(--primary); white-space:nowrap; }
-.topbar .search-row {
-  display:flex; align-items:center; gap:8px; flex:1; min-width:0;
-}
+.topbar h1 { font-size:1.05rem; font-weight:700; color:var(--primary); white-space:nowrap; }
+.topbar .status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.topbar .status-dot.online { background:var(--safe); }
+.topbar .status-dot.offline { background:var(--error); }
+.topbar .spacer { flex:1; }
 .topbar input {
-  flex:1; background:var(--surface2); border:1px solid var(--border);
-  color:var(--on-surface); padding:8px 12px; border-radius:var(--radius);
-  font-size:0.9rem; outline:none; min-width:120px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--on-surface); padding:9px 14px; border-radius:var(--radius);
+  font-size:0.92rem; outline:none; flex:1 1 140px; min-width:0;
 }
 .topbar input:focus { border-color:var(--primary); }
-
-.zh-hint {
-  background:rgba(76,175,80,0.18); color:#81c784;
-  border:1px solid rgba(76,175,80,0.25);
-  padding:3px 8px; border-radius:12px; font-size:0.72rem;
-  white-space:nowrap; display:none; align-items:center; gap:3px;
-  max-width:200px; overflow:hidden; text-overflow:ellipsis;
-}
-.zh-hint.visible { display:inline-flex; }
-.zh-hint .arrow { color:var(--on-surface-dim); font-size:0.65rem; }
-
 .lang-btn {
   background:var(--surface2); border:1px solid var(--border);
-  color:var(--on-surface-dim); padding:5px 10px; border-radius:6px;
+  color:var(--on-dim); padding:5px 10px; border-radius:6px;
   font-size:0.78rem; cursor:pointer; white-space:nowrap; flex-shrink:0;
 }
-.lang-btn:hover { background:var(--border); color:var(--on-surface); }
 
-/* ── Tab bar (mobile only) ──────────────── */
+/* ── My Meds section ─────────────── */
+.mymeds {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:8px 12px; display:flex; gap:8px; overflow-x:auto;
+  scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+}
+.mymeds::-webkit-scrollbar { height:3px; }
+.mymeds::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.med-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:10px 14px; min-width:160px; max-width:200px; flex-shrink:0;
+  scroll-snap-align:start; cursor:pointer; position:relative;
+}
+.med-card.active { border-color:var(--primary); }
+.med-card .med-name { font-weight:600; font-size:0.85rem; color:var(--primary); margin-right:30px; }
+.med-card .med-dose { font-size:0.75rem; color:var(--on-dim); margin-top:2px; }
+.med-card .med-next { font-size:0.7rem; color:var(--warn); margin-top:4px; }
+.med-card .med-late { color:var(--error); }
+.med-card .med-actions { position:absolute; top:8px; right:8px; display:flex; gap:4px; }
+.med-card .med-actions button {
+  background:none; border:none; color:var(--on-dim); cursor:pointer;
+  padding:2px; border-radius:4px; display:flex; align-items:center;
+}
+.med-card .med-actions button:hover { color:var(--on-surface); background:var(--border); }
+.med-card .med-actions button.enabled { color:var(--primary); }
+.med-card .med-actions button.disabled { color:var(--on-dim); opacity:0.4; }
+.mymeds-add {
+  background:var(--surface2); border:1px dashed var(--border); border-radius:var(--radius);
+  padding:10px 20px; min-width:120px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  color:var(--on-dim); font-size:0.78rem; cursor:pointer;
+}
+.mymeds-add:hover { border-color:var(--primary); color:var(--primary); }
+
+/* ── Tab bar ─────────────────────── */
 .tab-bar {
   display:none; background:var(--surface);
   border-bottom:1px solid var(--border);
   position:sticky; top:52px; z-index:15;
 }
 .tab-btn {
-  flex:1; background:none; border:none; color:var(--on-surface-dim);
+  flex:1; background:none; border:none; color:var(--on-dim);
   padding:10px 0; font-size:0.82rem; cursor:pointer;
-  border-bottom:2px solid transparent; transition:all 0.15s;
-  font-family:inherit; -webkit-tap-highlight-color:transparent;
+  border-bottom:2px solid transparent; font-family:inherit;
+  -webkit-tap-highlight-color:transparent; display:flex;
+  align-items:center; justify-content:center; gap:4px;
 }
 .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
 
-/* ── Layout ─────────────────────────────── */
-.layout { display:flex; height:calc(100vh - 52px); height:calc(100dvh - 52px); }
+/* ── Layout ──────────────────────── */
+.layout { display:flex; height:calc(100dvh - 98px); }
 .panel { overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .panel-left { width:380px; border-right:1px solid var(--border); flex-shrink:0; }
 .right-col { flex:1; display:flex; flex-direction:column; min-width:0; }
 
-/* Tab panels (mobile) */
-.tab-panel { display:block; }
-.tab-panel.hidden { display:none; }
-
 .section-title {
-  padding:12px 14px 6px;
-  font-size:0.7rem; text-transform:uppercase;
-  letter-spacing:0.06em; color:var(--on-surface-dim);
+  padding:12px 14px 6px; font-size:0.7rem; text-transform:uppercase;
+  letter-spacing:0.06em; color:var(--on-dim);
   position:sticky; top:0; background:var(--bg); z-index:1;
 }
 
-/* ── Result items ───────────────────────── */
+/* ── Result items ────────────────── */
 .result-item {
   padding:12px 14px; cursor:pointer; border-bottom:1px solid var(--border);
-  transition:background 0.12s; -webkit-tap-highlight-color:transparent;
+  display:flex; align-items:center; gap:10px; position:relative;
+  -webkit-tap-highlight-color:transparent;
 }
 .result-item:active { background:var(--surface2); }
 .result-item.active { background:var(--surface2); border-left:3px solid var(--primary); padding-left:11px; }
-.result-item .brand { font-weight:600; font-size:0.92rem; }
-.result-item .generic, .result-item .strength { font-size:0.8rem; color:var(--on-surface-dim); }
-.result-item .meta-row {
-  display:flex; gap:10px; margin-top:2px; font-size:0.72rem;
-  color:var(--on-surface-dim); flex-wrap:wrap;
+.result-item .ri-info { flex:1; min-width:0; }
+.result-item .ri-name { font-weight:600; font-size:0.9rem; }
+.result-item .ri-sub { font-size:0.78rem; color:var(--on-dim); }
+.result-item .ri-meta { font-size:0.7rem; color:var(--on-dim); margin-top:1px; display:flex; gap:8px; flex-wrap:wrap; }
+.result-item .ri-add {
+  flex-shrink:0; background:var(--primary); color:#121212; border:none;
+  padding:5px 10px; border-radius:6px; font-size:0.72rem; font-weight:600;
+  cursor:pointer; font-family:inherit; white-space:nowrap;
 }
+.result-item .ri-added { background:var(--surface2); color:var(--on-dim); }
 
 .empty-state {
-  padding:48px 18px; text-align:center; color:var(--on-surface-dim);
+  padding:48px 18px; text-align:center; color:var(--on-dim);
 }
 .empty-state p { margin-top:6px; font-size:0.88rem; }
 
-/* ── Detail section ─────────────────────── */
-.detail-section {
-  padding:14px 16px; border-bottom:1px solid var(--border);
-}
-.detail-section h3 {
-  font-size:0.95rem; color:var(--primary); margin-bottom:10px;
-}
-.detail-row {
-  display:flex; justify-content:space-between; padding:5px 0;
-  font-size:0.85rem; min-height:28px; align-items:center;
-}
-.detail-row .label { color:var(--on-surface-dim); flex-shrink:0; margin-right:12px; }
-.detail-row .value {
-  font-weight:500; text-align:right; overflow-wrap:break-word; word-break:break-all;
-}
+/* ── Detail ──────────────────────── */
+.detail-section { padding:14px 16px; border-bottom:1px solid var(--border); }
+.detail-section h3 { font-size:0.95rem; color:var(--primary); margin-bottom:10px; }
+.detail-row { display:flex; justify-content:space-between; padding:5px 0; font-size:0.85rem; min-height:28px; align-items:center; }
+.detail-row .label { color:var(--on-dim); flex-shrink:0; margin-right:12px; }
+.detail-row .value { font-weight:500; text-align:right; overflow-wrap:break-word; word-break:break-all; }
 .pk-highlight {
   background:var(--surface2); border-radius:var(--radius);
-  padding:8px 12px; margin-top:8px;
+  padding:10px 14px; margin-top:8px;
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;
 }
+.pk-highlight .pk-item { display:flex; flex-direction:column; }
+.pk-highlight .pk-label { font-size:0.68rem; color:var(--on-dim); }
+.pk-highlight .pk-value { font-size:0.9rem; font-weight:600; color:var(--primary); }
 
-/* ── Chart area ─────────────────────────── */
-.chart-area {
-  flex:1; min-height:220px; position:relative;
-}
+/* ── Chart ───────────────────────── */
+.chart-area { flex:1; min-height:220px; position:relative; }
 .chart-area canvas { width:100%; height:100%; display:block; }
+.chart-legend {
+  position:absolute; bottom:10px; right:12px;
+  display:flex; gap:10px; font-size:0.68rem; color:var(--on-dim);
+}
+.chart-legend span { display:flex; align-items:center; gap:4px; }
+.chart-legend .swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.swatch-safe { background:rgba(76,175,80,.5); }
+.swatch-warn { background:rgba(255,183,77,.5); }
+.swatch-toxic { background:rgba(207,102,121,.5); }
 
-/* ── Sim controls ───────────────────────── */
+/* ── Controls ───────────────────── */
 .sim-controls {
   padding:10px 14px; display:flex; gap:8px; align-items:center;
   flex-wrap:wrap; border-top:1px solid var(--border); background:var(--surface);
 }
 .sim-controls label {
-  font-size:0.78rem; color:var(--on-surface-dim);
+  font-size:0.78rem; color:var(--on-dim);
   display:flex; align-items:center; gap:5px; white-space:nowrap;
 }
 .sim-controls input[type=number] {
-  width:58px; background:var(--surface2); border:1px solid var(--border);
-  color:var(--on-surface); padding:6px 6px; border-radius:4px;
+  width:54px; background:var(--surface2); border:1px solid var(--border);
+  color:var(--on-surface); padding:6px; border-radius:4px;
   font-size:0.82rem; text-align:center; font-family:inherit;
 }
-.sim-controls input[type=number]:focus { border-color:var(--primary); outline:none; }
+.sim-controls input:focus { border-color:var(--primary); outline:none; }
 .sim-controls button {
   background:var(--primary); color:#121212; border:none;
   padding:7px 16px; border-radius:6px; font-weight:600;
   font-size:0.8rem; cursor:pointer; font-family:inherit;
 }
-.sim-controls button:active { filter:brightness(1.1); }
-.sim-cta { flex:1; display:flex; justify-content:flex-end; }
-.sim-half { font-size:0.72rem; color:var(--on-surface-dim); }
+.sim-detail-btn {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--on-surface); padding:7px 12px; border-radius:6px;
+  font-size:0.77rem; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; gap:4px;
+}
 .sim-controls .spacer { flex:1 1 0; min-width:0; }
 
-/* ── Meta footer ────────────────────────── */
+/* ── Footer ─────────────────────── */
 .meta-footer {
   padding:8px 14px; border-top:1px solid var(--border);
-  font-size:0.66rem; color:var(--on-surface-dim);
+  font-size:0.66rem; color:var(--on-dim);
   display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;
   background:var(--surface);
 }
-.meta-footer span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.meta-footer .source-badge { margin-left:auto; }
 
-.source-badge {
-  display:inline-flex; align-items:center; gap:3px;
-  background:var(--surface2); padding:2px 7px; border-radius:4px;
-  font-size:0.66rem; color:var(--on-surface-dim);
+.spinner {
+  width:18px; height:18px; border:2px solid var(--surface2);
+  border-top-color:var(--primary); border-radius:50%;
+  animation:spin 0.6s linear infinite; margin:0 auto 6px;
 }
-
-.spinner { width:18px; height:18px; border:2px solid var(--surface2); border-top-color:var(--primary); border-radius:50%; animation:spin 0.6s linear infinite; margin:0 auto 6px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-/* ── Responsive ──────────────────────────── */
+/* ── Notification banner ────────── */
+.notify-banner {
+  display:none; background:var(--surface2); border:1px solid var(--warn);
+  color:var(--warn); padding:10px 16px; margin:8px 12px; border-radius:var(--radius);
+  font-size:0.8rem; align-items:center; gap:8px;
+}
+.notify-banner.visible { display:flex; }
+.notify-banner button {
+  background:var(--primary); color:#121212; border:none;
+  padding:5px 14px; border-radius:6px; font-weight:600;
+  font-size:0.75rem; cursor:pointer; font-family:inherit; white-space:nowrap;
+}
+
+/* ── Toast ──────────────────────── */
+.toast {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--on-surface); padding:10px 20px; border-radius:20px;
+  font-size:0.82rem; z-index:100; opacity:0; transition:opacity 0.3s;
+  pointer-events:none; white-space:nowrap;
+}
+.toast.show { opacity:1; }
+
+/* ── Responsive ──────────────────── */
 @media (max-width:749px) {
   .tab-bar { display:flex; }
   .layout { display:block; height:auto; }
   .right-col { display:contents; }
-  .panel { height:auto !important; max-height:none !important; overflow:visible; }
-  .panel-left, .panel-right { width:100% !important; max-height:none !important; border:none !important; }
-  .panel-left { min-height:60vh; }
-  .chart-area { height:75vh; height:75dvh; min-height:340px; }
-  .topbar { padding:8px 10px; gap:6px; }
-  .topbar h1 { font-size:1.1rem; }
-  .topbar .search-row { flex:1 1 100%; order:3; }
-  .topbar input { font-size:1rem; padding:10px 12px; } /* 16px to prevent iOS zoom */
+  .panel { height:auto!important; overflow:visible; }
+  .panel-left,.panel-right { width:100%!important; max-height:none!important; border:none!important; }
+  .panel-left { min-height:50vh; }
+  .chart-area { height:75dvh; min-height:340px; }
+  .topbar { padding:6px 8px; gap:6px; }
+  .topbar h1 { font-size:1rem; }
+  .topbar input { font-size:1rem; padding:10px 12px; }
   .lang-btn { font-size:0.85rem; padding:6px 12px; }
+  .mymeds { padding:6px 8px; }
+  .med-card { min-width:140px; padding:8px 12px; }
   .detail-section { padding:12px; }
   .detail-section h3 { font-size:1rem; }
   .detail-row { font-size:0.9rem; min-height:32px; }
   .result-item { padding:14px 12px; }
-  .result-item .brand { font-size:0.95rem; }
-  .result-item .generic { font-size:0.85rem; }
-  .result-item .meta-row { font-size:0.75rem; }
+  .result-item .ri-name { font-size:0.95rem; }
   .sim-controls { padding:8px 10px; gap:6px; }
   .sim-controls label { font-size:0.8rem; }
-  .sim-controls input[type=number] { width:54px; padding:8px 4px; font-size:0.9rem; }
+  .sim-controls input[type=number] { width:50px; padding:8px 4px; font-size:0.9rem; }
   .sim-controls button { padding:9px 14px; font-size:0.85rem; }
+  .notify-banner { margin:6px 8px; }
 }
-
 @media (min-width:750px) {
-  .tab-panel.hidden { display:block !important; }
-  .topbar { padding:10px 20px; }
-  .topbar h1 { font-size:1.15rem; }
+  .tab-panel.hidden { display:block!important; }
   .result-item:hover { background:var(--surface2); }
+  .topbar { padding:10px 20px; }
 }
-
-/* Desktop fine-tuning */
 @media (min-width:1100px) {
-  .topbar { padding:12px 24px; }
   .panel-left { width:400px; }
 }
 </style>
@@ -219,26 +261,39 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
 <body>
 
 <div class="topbar">
+  <svg class="icon lg" viewBox="0 0 24 24"><path d="M12 4v2M8 2v4M16 2v4"/><circle cx="12" cy="13" r="6"/><path d="M7 13q4-8 10 0"/><path d="M12 19v2"/></svg>
   <h1>DoseLab</h1>
-  <span class="zh-hint" id="zhHint"><span class="arrow">→</span><span id="zhHintText"></span></span>
-  <button class="lang-btn" id="langBtn" onclick="toggleLang()" title="Switch language">中</button>
-  <div class="search-row">
-    <input type="text" id="searchInput" autofocus>
-  </div>
+  <span class="status-dot online" id="statusDot" title="Online"></span>
+  <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
+  <input type="text" id="searchInput" placeholder="" autofocus>
+</div>
+
+<div class="mymeds" id="myMeds"></div>
+<div id="notifyBanner" class="notify-banner">
+  <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+  <span id="notifyBannerText"></span>
+  <span class="spacer" style="flex:1"></span>
+  <button onclick="enableNotifications()">Enable</button>
 </div>
 
 <div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" data-tab="list" id="tabList">List</button>
-  <button class="tab-btn" data-tab="detail" id="tabDetail">Detail</button>
-  <button class="tab-btn" data-tab="chart" id="tabChart">Chart</button>
+  <button class="tab-btn active" data-tab="list" id="tabBtnList">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+    <span id="tabLabelList">List</span>
+  </button>
+  <button class="tab-btn" data-tab="detail" id="tabBtnDetail">
+    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span id="tabLabelDetail">Detail</span>
+  </button>
+  <button class="tab-btn" data-tab="chart" id="tabBtnChart">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M3 16l4-5 3 3 4-6 5 3"/></svg>
+    <span id="tabLabelChart">Chart</span>
+  </button>
 </div>
 
 <div class="layout" id="layoutRoot">
   <div class="panel panel-left tab-panel" id="panelList">
-    <div class="empty-state">
-      <div style="font-size:2rem; opacity:0.3;">🔬</div>
-      <p id="emptyHint"></p>
-    </div>
+    <div class="empty-state"><p id="emptyHint"></p></div>
   </div>
   <div class="right-col">
     <div class="panel tab-panel" id="panelDetail">
@@ -248,270 +303,370 @@ body { background:var(--bg); color:var(--on-surface); min-height:100vh; min-heig
     </div>
     <div class="panel chart-area tab-panel" id="panelChart">
       <canvas id="pkChart"></canvas>
+      <div class="chart-legend">
+        <span><span class="swatch swatch-safe"></span>therapeutic</span>
+        <span><span class="swatch swatch-warn"></span>warning</span>
+        <span><span class="swatch swatch-toxic"></span>toxic</span>
+      </div>
     </div>
     <div class="sim-controls" id="simControls"></div>
     <div class="meta-footer" id="metaFooter"></div>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-const I18N = {
+const I = {
   en: {
-    search: 'Search medications (e.g. sertraline, ibuprofen)...',
-    emptyHint: 'Search for a medication to begin',
-    detailHint: 'Select a medication to view details',
-    noResults: 'No results found',
-    searching: 'Searching…',
-    medications: 'Medications',
-    generic: 'Generic',
-    strength: 'Strength',
-    dosageForm: 'Dosage form',
-    route: 'Route',
-    ndc: 'NDC',
-    manufacturer: 'Manufacturer',
-    category: 'Category',
-    halfLife: 'Half‑life',
-    tmax: 'T<sub>max</sub>',
-    steadyState: 'Steady state',
-    pkData: 'PK data',
-    loading: 'Loading…',
-    dose: 'Dose',
-    mgEvery: 'mg every',
-    hFor: 'h for',
-    h: 'h',
-    refresh: 'Refresh',
-    therapeuticWindow: 'therapeutic window',
-    peak: 'peak',
-    doses: 'doses',
-    fdaNdc: 'FDA NDC',
-    label: 'Label',
-    disclaimer: 'Reference only — not medical advice',
-    error: 'Error',
-    langTitle: 'Switch language',
-    langLabel: '中',
-    tabList: 'List',
-    tabDetail: 'Detail',
-    tabChart: 'Chart',
+    searchPH:'Search medications (e.g. sertraline, ibuprofen)...',
+    emptyHint:'Search for a medication to begin',
+    detailHint:'Select a medication to view details',
+    noResults:'No results found',
+    searching:'Searching…',
+    medications:'Results',
+    generic:'Generic name',
+    strength:'Strength',
+    dosageForm:'Form',
+    route:'Route',
+    ndc:'NDC',
+    manufacturer:'Mfr',
+    category:'Category',
+    halfLife:'Half-life',
+    tmax:'Tmax',
+    steadyState:'Steady state',
+    pkData:'PK data',
+    loading:'Loading…',
+    dose:'Dose',
+    mgEvery:'mg every',
+    hFor:'h for',
+    h:'h',
+    refresh:'Refresh',
+    therapeuticWindow:'therapeutic window',
+    warningZone:'warning zone',
+    toxicZone:'toxic zone',
+    peak:'peak',
+    doses:'doses',
+    fdaNdc:'FDA NDC',
+    label:'Label',
+    disclaimer:'Reference only — not medical advice',
+    error:'Error',
+    langTitle:'Switch language',
+    langLabel:'EN',
+    tabList:'List', tabDetail:'Detail', tabChart:'Chart',
+    addToMeds:'Add',
+    added:'Added',
+    myMeds:'My Meds',
+    noMeds:'Search for a medication and tap Add',
+    nextDose:'Next: ',
+    overdue:'OVERDUE',
+    enableNotify:'Enable notifications for medication reminders',
+    notifyGranted:'Notifications enabled',
+    notifyDenied:'Notifications blocked — check browser settings',
+    medRemoved:'Removed',
+    doseMg:'mg',
+    addHint:'+ Add',
   },
   zh: {
-    search: '搜索药品（如 sertraline, ibuprofen）…',
-    emptyHint: '搜索药品以开始',
-    detailHint: '选择一个药品查看详情',
-    noResults: '未找到结果',
-    searching: '搜索中…',
-    medications: '药品列表',
-    generic: '通用名',
-    strength: '规格',
-    dosageForm: '剂型',
-    route: '给药途径',
-    ndc: 'NDC 编码',
-    manufacturer: '生产厂商',
-    category: '上市类别',
-    halfLife: '半衰期',
-    tmax: '达峰时间 T<sub>max</sub>',
-    steadyState: '达稳态',
-    pkData: 'PK 数据',
-    loading: '加载中…',
-    dose: '剂量',
-    mgEvery: 'mg 每',
-    hFor: 'h 持续',
-    h: 'h',
-    refresh: '刷新',
-    therapeuticWindow: '治疗窗',
-    peak: '峰浓度',
-    doses: '剂',
-    fdaNdc: 'FDA NDC',
-    label: '标签',
-    disclaimer: '仅供参考 — 非医疗建议',
-    error: '错误',
-    langTitle: '切换语言',
-    langLabel: 'EN',
-    tabList: '列表',
-    tabDetail: '详情',
-    tabChart: '图表',
+    searchPH:'搜索药品（如 sertraline, ibuprofen）…',
+    emptyHint:'搜索药品以开始',
+    detailHint:'选择一个药品查看详情',
+    noResults:'未找到结果',
+    searching:'搜索中…',
+    medications:'结果',
+    generic:'通用名',
+    strength:'规格',
+    dosageForm:'剂型',
+    route:'给药途径',
+    ndc:'NDC',
+    manufacturer:'厂商',
+    category:'类别',
+    halfLife:'半衰期',
+    tmax:'达峰时间',
+    steadyState:'达稳态',
+    pkData:'PK 数据',
+    loading:'加载中…',
+    dose:'剂量',
+    mgEvery:'mg 每',
+    hFor:'h 持续',
+    h:'h',
+    refresh:'刷新',
+    therapeuticWindow:'治疗窗',
+    warningZone:'警戒区',
+    toxicZone:'中毒区',
+    peak:'峰浓度',
+    doses:'剂',
+    fdaNdc:'FDA NDC',
+    label:'标签',
+    disclaimer:'仅供参考 — 非医疗建议',
+    error:'错误',
+    langTitle:'切换语言',
+    langLabel:'中',
+    tabList:'列表', tabDetail:'详情', tabChart:'图表',
+    addToMeds:'添加',
+    added:'已添加',
+    myMeds:'我的药品',
+    noMeds:'搜索药品后点击添加',
+    nextDose:'下次: ',
+    overdue:'已超时',
+    enableNotify:'开启通知以提醒用药',
+    notifyGranted:'通知已开启',
+    notifyDenied:'通知被阻止 — 请在浏览器设置中允许',
+    medRemoved:'已移除',
+    doseMg:'mg',
+    addHint:'+ 添加',
   }
 };
 
-let locale = 'en';
-if (typeof navigator !== 'undefined' && navigator.language?.startsWith('zh')) locale = 'zh';
-const tcache = {};
+let L = 'en';
+if (navigator.language?.startsWith('zh')) L = 'zh';
+const T = {};
+function t(k) { T[k]??={}; T[k][L]??=(I[L]?.[k]??I.en[k]??k).replace(/&lt;/g,'<').replace(/&gt;/g,'>'); return T[k][L]; }
+function toggleLang() { L = L==='en'?'zh':'en'; updateAll(); localStorage?.setItem('dl-lang',L); }
+if (localStorage?.getItem('dl-lang')) L = localStorage.getItem('dl-lang');
 
-function t(key) {
-  tcache[key] ??= {};
-  if (!tcache[key][locale]) {
-    tcache[key][locale] = (I18N[locale]?.[key] ?? I18N.en[key] ?? key)
-      .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+let online = navigator.onLine;
+window.addEventListener('online',()=>{ online=true; document.getElementById('statusDot').className='status-dot online'; });
+window.addEventListener('offline',()=>{ online=false; document.getElementById('statusDot').className='status-dot offline'; });
+document.getElementById('statusDot').className = 'status-dot ' + (online?'online':'offline');
+
+/* ── IndexedDB ──────────────────── */
+function idb() {
+  return new Promise((ok,no) => {
+    const r = indexedDB.open('doselab',1);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('meds')) db.createObjectStore('meds',{keyPath:'id'});
+      if (!db.objectStoreNames.contains('labels')) db.createObjectStore('labels',{keyPath:'key'});
+    };
+    r.onsuccess = e => ok(e.target.result);
+    r.onerror = () => ok(null);
+  });
+}
+async function idbPut(store,data) { const db=await idb(); if(!db)return; return new Promise(ok=>{ const t=db.transaction(store,'readwrite').objectStore(store); t.put(data); t.transaction.oncomplete=ok; }); }
+async function idbGet(store,key) { const db=await idb(); if(!db)return null; return new Promise(ok=>{ const t=db.transaction(store,'readonly').objectStore(store); const r=t.get(key); r.onsuccess=()=>ok(r.result); r.onerror=()=>ok(null); }); }
+async function idbGetAll(store) { const db=await idb(); if(!db)return[]; return new Promise(ok=>{ const t=db.transaction(store,'readonly').objectStore(store); const r=t.getAll(); r.onsuccess=()=>ok(r.result||[]); r.onerror=()=>ok([]); }); }
+async function idbDel(store,key) { const db=await idb(); if(!db)return; return new Promise(ok=>{ const t=db.transaction(store,'readwrite').objectStore(store); t.delete(key); t.transaction.oncomplete=ok; }); }
+
+/* ── My Medications ─────────────── */
+let myMeds = [];
+let notificationGranted = false;
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+async function loadMyMeds() { myMeds = await idbGetAll('meds'); renderMyMeds(); scheduleAll(); }
+async function saveMeds() { for (const m of myMeds) await idbPut('meds', m); }
+
+async function addMed(med) {
+  const existing = myMeds.find(m => m.product_ndc === med.product_ndc);
+  if (existing) { removeMed(existing.id); return; }
+  const entry = {
+    id: Date.now().toString(),
+    product_ndc: med.product_ndc,
+    brand_name: med.brand_name || med.generic_name,
+    generic_name: med.generic_name || '',
+    strength: med.active_ingredients?.map(a=>a.strength).join(', ') || '',
+    dose_mg: parseInt((med.active_ingredients?.[0]?.strength||'').match(/\d+/)?.[0]) || 50,
+    interval_h: 24,
+    notify: false,
+    added_at: Date.now(),
+    last_dose: null,
+  };
+  myMeds.push(entry);
+  await saveMeds();
+  renderMyMeds();
+  renderResults(window._searchResults, window._searchMeta);
+}
+
+async function removeMed(id) {
+  myMeds = myMeds.filter(m => m.id !== id);
+  await idbDel('meds', id);
+  await saveMeds();
+  renderMyMeds();
+  renderResults(window._searchResults, window._searchMeta);
+  toast(t('medRemoved'));
+}
+
+function isMedAdded(ndc) { return myMeds.some(m => m.product_ndc === ndc); }
+
+function toggleNotify(id) {
+  const m = myMeds.find(m => m.id === id);
+  if (!m) return;
+  if (!notificationGranted && !m.notify) {
+    Notification.requestPermission().then(p => {
+      notificationGranted = p === 'granted';
+      document.getElementById('notifyBanner').classList.toggle('visible', !notificationGranted);
+      if (notificationGranted) {
+        m.notify = true; saveMeds(); scheduleMed(m); renderMyMeds();
+      }
+    });
+    return;
   }
-  return tcache[key][locale];
+  m.notify = !m.notify;
+  if (m.notify) { scheduleMed(m); } else { clearMedTimer(m.id); }
+  saveMeds(); renderMyMeds();
 }
 
-function toggleLang() {
-  locale = locale === 'en' ? 'zh' : 'en';
-  updateAllTexts();
-  localStorage?.setItem('doselab-lang', locale);
-}
-if (typeof localStorage !== 'undefined' && localStorage.getItem('doselab-lang')) {
-  locale = localStorage.getItem('doselab-lang');
+function setDoseTime(id) {
+  const m = myMeds.find(m => m.id === id);
+  if (!m) return;
+  m.last_dose = Date.now();
+  saveMeds();
+  if (m.notify) scheduleMed(m);
+  renderMyMeds();
 }
 
-function updateAllTexts() {
-  const inp = document.getElementById('searchInput');
-  inp.placeholder = t('search');
-  document.getElementById('langBtn').textContent = t('langLabel');
-  document.getElementById('langBtn').title = t('langTitle');
-  document.getElementById('tabList').textContent = t('tabList');
-  document.getElementById('tabDetail').textContent = t('tabDetail');
-  document.getElementById('tabChart').textContent = t('tabChart');
-  document.documentElement.lang = locale;
+const timers = {};
+function clearMedTimer(id) { if (timers[id]) { clearTimeout(timers[id]); delete timers[id]; } }
+function scheduleMed(m) {
+  clearMedTimer(m.id);
+  if (!m.notify || !m.last_dose) return;
+  const nextTime = m.last_dose + m.interval_h * 3600000;
+  const delay = nextTime - Date.now();
+  if (delay <= 0) return;
+  timers[m.id] = setTimeout(() => {
+    if (Notification.permission === 'granted') {
+      new Notification(`${m.brand_name} ${m.dose_mg}${t('doseMg')}`, {
+        body: `${t('nextDose')}${new Date().toLocaleTimeString()}\n${m.strength}`,
+        tag: `doselab-${m.id}`,
+        renotify: true,
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        icon: '/icon-192.png',
+      });
+    }
+    m.last_dose = Date.now();
+    saveMeds();
+    scheduleMed(m);
+    renderMyMeds();
+  }, delay);
+}
+function scheduleAll() { myMeds.forEach(scheduleMed); }
 
-  const results = window._searchResults;
-  if (results) {
-    renderResults(results, window._searchMeta);
-  } else {
-    document.getElementById('emptyHint').textContent = t('emptyHint');
+function enableNotifications() {
+  Notification.requestPermission().then(p => {
+    notificationGranted = p === 'granted';
+    document.getElementById('notifyBanner').classList.toggle('visible', !notificationGranted);
+    if (notificationGranted) myMeds.forEach(m => { if (m.notify && m.last_dose) scheduleMed(m); });
+  });
+}
+
+function renderMyMeds() {
+  const el = document.getElementById('myMeds');
+  if (!myMeds.length) {
+    el.innerHTML = `<div class="mymeds-add" onclick="document.getElementById('searchInput').focus()">${t('addHint')}</div>`;
+    return;
   }
-  if (selectedMed) {
-    renderDetail(selectedMed);
-  } else {
-    document.getElementById('detailHint').textContent = t('detailHint');
+  let html = '';
+  for (const m of myMeds) {
+    const now = Date.now();
+    let nextStr = '';
+    if (m.last_dose) {
+      const next = m.last_dose + m.interval_h * 3600000;
+      const diff = next - now;
+      if (diff <= 0) nextStr = `<span class="med-next med-late">${t('overdue')}</span>`;
+      else {
+        const h = Math.floor(diff / 3600000);
+        const min = Math.floor((diff % 3600000) / 60000);
+        nextStr = `<span class="med-next">${t('nextDose')}${h}h ${min}min</span>`;
+      }
+    }
+    html += `<div class="med-card" onclick="showMedDetails('${m.product_ndc}')">
+      <div class="med-actions">
+        <button class="${m.notify?'enabled':'disabled'}" onclick="event.stopPropagation();toggleNotify('${m.id}')" title="${m.notify?'Notifications on':'Notifications off'}">
+          <svg class="icon" viewBox="0 0 24 24">${m.notify?'<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>':'<path d="M13.7 21a2 2 0 01-3.4 0M18 8c0-2.8-2.2-5-5-5s-5 2.2-5 5M6.3 17h11.4M22 17H2M3.3 17s3-2 3-9m11.4 0s-3-2-3-9"/><path d="M2 2l20 20"/>'}</svg>
+        </button>
+        <button onclick="event.stopPropagation();setDoseTime('${m.id}')" title="Log dose now">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </button>
+        <button onclick="event.stopPropagation();removeMed('${m.id}')" title="Remove">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="med-name">${m.brand_name}</div>
+      <div class="med-dose">${m.dose_mg}${t('doseMg')} · ${t('mgEvery')} ${m.interval_h}${t('h')}</div>
+      ${nextStr}
+    </div>`;
   }
-  renderControls();
-  if (document.getElementById('panelChart').offsetParent !== null) drawChart();
+  html += `<div class="mymeds-add" onclick="document.getElementById('searchInput').focus()">${t('addHint')}</div>`;
+  el.innerHTML = html;
 }
 
-/* ── Mobile tab switching ────────────────── */
-function isMobile() { return window.innerWidth < 750; }
+function showMedDetails(ndc) {
+  const found = window._searchResults?.find(r => r.product_ndc === ndc);
+  if (found) {
+    selectedMed = found;
+    renderDetail(found);
+    fetchLabel(found);
+    if (isMobile()) switchTab('detail');
+  }
+}
 
+/* ── Mobile tab ─────────────────── */
 let mobileTab = 'list';
-
+function isMobile() { return window.innerWidth < 750; }
 function switchTab(name) {
   mobileTab = name;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  if (!isMobile()) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
-    return;
-  }
-  const panels = {
-    list: document.getElementById('panelList'),
-    detail: document.getElementById('panelDetail'),
-    chart: document.getElementById('panelChart'),
-  };
-  for (const [key, el] of Object.entries(panels)) {
-    if (el) el.classList.toggle('hidden', key !== name);
-  }
+  if (!isMobile()) { document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden')); return; }
+  ['panelList','panelDetail','panelChart'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.classList.toggle('hidden', id !== {list:'panelList',detail:'panelDetail',chart:'panelChart'}[name]);
+  });
   if (name === 'chart') setTimeout(drawChart, 100);
 }
+document.getElementById('tabBar').addEventListener('click', e => { const b = e.target.closest('.tab-btn'); if (b) switchTab(b.dataset.tab); });
 
-document.getElementById('tabBar').addEventListener('click', e => {
-  const btn = e.target.closest('.tab-btn');
-  if (btn) switchTab(btn.dataset.tab);
-});
-
-/* ── FDA API ─────────────────────────────── */
-const FDA_BASE = 'https://api.fda.gov';
-
-let selectedMed = null;
-let pkParams = null;
+/* ── FDA API ────────────────────── */
+const FDA = 'https://api.fda.gov';
+let selectedMed = null, pkParams = null;
 let simHours = 72, doseMg = 50, intervalHours = 24;
 let schedule = [];
 
-const CJK_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/;
-let zhDrugMap = [];
+const CJK = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/;
+let zhMap = [];
 
-function hasCJK(s) { return CJK_RE.test(s); }
-
-function matchZhToEn(query) {
-  if (!query || !zhDrugMap.length) return null;
-  const q = query.toLowerCase();
-  for (const entry of zhDrugMap) {
-    if (!entry.zh) continue;
-    for (const name of entry.zh) {
-      if (name.includes(q) || q.includes(name)) {
-        return { en: entry.en, zh: name, category: entry.category || '' };
-      }
-    }
-  }
+function hasCJK(s) { return CJK.test(s); }
+function matchZh(q) {
+  if (!q || !zhMap.length) return null;
+  const lq = q.toLowerCase();
+  for (const e of zhMap) { if (!e.zh) continue; for (const n of e.zh) { if (n.includes(lq) || lq.includes(n)) return { en:e.en, zh:n, cat:e.category||'' }; } }
   return null;
 }
-
-function showZhHint(zhName, enName) {
-  const el = document.getElementById('zhHint');
-  const txt = document.getElementById('zhHintText');
-  if (enName) {
-    txt.textContent = `${zhName} → ${enName}`;
-    el.classList.add('visible');
-  } else {
-    el.classList.remove('visible');
-  }
+function resolveQuery(q) {
+  if (hasCJK(q)) { const m = matchZh(q); if (m) { window._zh=m; return m.en; } window._zh=null; return q; }
+  window._zh = null; return q;
 }
 
-async function loadZhDrugMap() {
-  try {
-    const resp = await fetch('data/zh_drug_map.json');
-    if (resp.ok) {
-      zhDrugMap = await resp.json();
-      document.getElementById('searchInput').addEventListener('input', () => {
-        const q = document.getElementById('searchInput').value.trim();
-        if (hasCJK(q)) {
-          const match = matchZhToEn(q);
-          showZhHint(match ? match.zh : '', match ? match.en : '');
-        } else { showZhHint('', ''); }
-      });
-    }
-  } catch (e) { console.warn('Failed to load Chinese drug map:', e.message); }
-}
-
-function resolveSearchTerm(query) {
-  if (hasCJK(query)) {
-    const match = matchZhToEn(query);
-    if (match) { window._zhMatch = match; return match.en; }
-    window._zhMatch = null; return query;
-  }
-  window._zhMatch = null; return query;
-}
-
-function apiUrl(endpoint, search, limit=20) {
-  const q = search ? `search=${encodeURIComponent(search)}` : '';
-  return `${FDA_BASE}/${endpoint}?${q}&limit=${limit}&skip=0`;
-}
-
-async function fdaFetch(endpoint, search, limit=20) {
-  const url = apiUrl(endpoint, search, limit);
+async function fdaFetch(ep, search, limit=20) {
+  const url = `${FDA}/${ep}?search=${encodeURIComponent(search)}&limit=${limit}&skip=0`;
   const resp = await fetch(url);
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${resp.status}`);
-  }
+  if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.error?.message||`HTTP ${resp.status}`); }
   const data = await resp.json();
-  return {
-    results: data.results || [],
-    meta: data.meta || {},
-    retrieved_at: new Date().toISOString(),
-    request_url: url.replace(/(api_key=)[^&]+/, '$1***'),
-    endpoint, search_query: search,
-  };
+  return { results: data.results||[], meta: data.meta||{}, retrieved_at: new Date().toISOString(), request_url: url.replace(/(api_key=)[^&]+/,'$1***'), endpoint:ep, search_query:search };
 }
 
 function renderResults(items, meta) {
   const el = document.getElementById('panelList');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty-state"><p>${t('noResults')}</p></div>`;
-    return;
-  }
+  if (!items?.length) { el.innerHTML = `<div class="empty-state"><p>${t('noResults')}</p></div>`; return; }
   const total = meta?.results?.total ?? items.length;
   let html = `<div class="section-title">${t('medications')} (${total})</div>`;
-  items.forEach((item, i) => {
-    const strength = item.active_ingredients?.map(a => a.strength).join(', ') || '';
-    const route = (item.route || []).join(', ');
-    const form = item.dosage_form || '';
-    const active = selectedMed?.product_ndc === item.product_ndc;
+  items.forEach((item,i) => {
+    const strength = item.active_ingredients?.map(a=>a.strength).join(', ')||'';
+    const route = (item.route||[]).join(', ');
+    const form = item.dosage_form||'';
+    const active = selectedMed?.product_ndc===item.product_ndc;
+    const added = isMedAdded(item.product_ndc);
     html += `<div class="result-item${active?' active':''}" onclick="selectMed(${i})">
-      <div class="brand">${item.brand_name || item.generic_name}</div>
-      <div class="generic">${item.generic_name || ''}</div>
-      ${strength ? `<div class="strength">${strength}</div>` : ''}
-      <div class="meta-row">
-        <span>${form}</span><span>${route}</span><span>NDC ${item.product_ndc}</span>
+      <div class="ri-info">
+        <div class="ri-name">${item.brand_name||item.generic_name}</div>
+        <div class="ri-sub">${item.generic_name||''}${strength?' · '+strength:''}</div>
+        <div class="ri-meta"><span>${form}</span><span>${route}</span><span>NDC ${item.product_ndc}</span></div>
       </div>
+      <button class="ri-add${added?' ri-added':''}" onclick="event.stopPropagation();addMed(${JSON.stringify(item).replace(/"/g,'&quot;')})">${added?t('added'):t('addToMeds')}</button>
     </div>`;
   });
   el.innerHTML = html;
@@ -519,8 +674,7 @@ function renderResults(items, meta) {
 }
 
 window.selectMed = async function(idx) {
-  const items = window._searchResults || [];
-  selectedMed = items[idx];
+  const items = window._searchResults||[]; selectedMed = items[idx];
   if (!selectedMed) return;
   renderResults(items, window._searchMeta);
   renderDetail(selectedMed);
@@ -529,267 +683,218 @@ window.selectMed = async function(idx) {
 };
 
 function renderDetail(med) {
-  const strength = med.active_ingredients?.map(a => a.strength).join(', ') || '—';
-  const route = (med.route || []).join(', ') || '—';
+  const strength = med.active_ingredients?.map(a=>a.strength).join(', ')||'—';
+  const route = (med.route||[]).join(', ')||'—';
+  const myMed = myMeds.find(m=>m.product_ndc===med.product_ndc);
   const el = document.getElementById('detailPanel');
   el.innerHTML = `
-    <h3>${med.brand_name || med.generic_name}</h3>
-    <div class="detail-row"><span class="label">${t('generic')}</span><span class="value">${med.generic_name || '—'}</span></div>
+    <h3>${med.brand_name||med.generic_name}</h3>
+    <div class="detail-row"><span class="label">${t('generic')}</span><span class="value">${med.generic_name||'—'}</span></div>
     <div class="detail-row"><span class="label">${t('strength')}</span><span class="value">${strength}</span></div>
-    <div class="detail-row"><span class="label">${t('dosageForm')}</span><span class="value">${med.dosage_form || '—'}</span></div>
+    <div class="detail-row"><span class="label">${t('dosageForm')}</span><span class="value">${med.dosage_form||'—'}</span></div>
     <div class="detail-row"><span class="label">${t('route')}</span><span class="value">${route}</span></div>
     <div class="detail-row"><span class="label">${t('ndc')}</span><span class="value">${med.product_ndc}</span></div>
-    <div class="detail-row"><span class="label">${t('manufacturer')}</span><span class="value">${med.labeler_name || '—'}</span></div>
-    <div class="detail-row"><span class="label">${t('category')}</span><span class="value">${med.marketing_category || '—'}</span></div>
+    <div class="detail-row"><span class="label">${t('manufacturer')}</span><span class="value">${med.labeler_name||'—'}</span></div>
     ${pkParams ? `<div class="pk-highlight">
-      <div class="detail-row"><span class="label">${t('halfLife')}</span><span class="value" style="color:var(--primary);font-weight:700;">${pkParams.half_life_hours || '—'} h</span></div>
-      <div class="detail-row"><span class="label">${t('tmax')}</span><span class="value">${pkParams.tmax_hours || '—'}</span></div>
-      <div class="detail-row"><span class="label">${t('steadyState')}</span><span class="value">${pkParams.steady_state || '—'}</span></div>
-    </div>` : `<div class="detail-row"><span class="label" style="color:var(--on-surface-dim);">${t('pkData')}</span><span class="value" style="color:var(--on-surface-dim);">${t('loading')}</span></div>`}
+      <div class="pk-item"><span class="pk-label">${t('halfLife')}</span><span class="pk-value">${pkParams.half_life_hours||'—'} h</span></div>
+      <div class="pk-item"><span class="pk-label">${t('tmax')}</span><span class="pk-value">${pkParams.tmax_hours||'—'}</span></div>
+      <div class="pk-item"><span class="pk-label">${t('steadyState')}</span><span class="pk-value">${pkParams.steady_state||'—'}</span></div>
+    </div>` : `<div class="detail-row"><span class="label" style="color:var(--on-dim);">${t('pkData')}</span><span class="value" style="color:var(--on-dim);">${t('loading')}</span></div>`}
+    ${myMed ? `<div style="margin-top:10px">
+      <button class="sim-detail-btn" onclick="setDoseTime('${myMed.id}')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        ${t('dose')} ${t('refresh')}
+      </button>
+    </div>` : ''}
   `;
 }
 
-function parsePKFromLabel(labelResult) {
-  const label = (labelResult?.results || [])[0];
-  if (!label) return null;
+function parsePK(data) {
+  const label = (data?.results||[])[0]; if (!label) return null;
   const pk = {};
-  const pkText = (label.pharmacokinetics || []).join(' ');
-  const halfMatch = pkText.match(/half[- ]life[^0-9]*?(\d+[\.\d]*) to (\d+[\.\d]*)\s*h/i)
-    || pkText.match(/half[- ]life[^0-9]*?about\s*(\d+[\.\d]*)\s*h/i)
-    || pkText.match(/half[- ]life[^0-9]*?(\d+[\.\d]*)\s*h/i);
-  if (halfMatch) {
-    pk.half_life_text = halfMatch[0].trim();
-    pk.half_life_hours = halfMatch[2] ? (parseFloat(halfMatch[1]) + parseFloat(halfMatch[2])) / 2 : parseFloat(halfMatch[1]);
-  }
-  const tmaxMatch = pkText.match(/(?:peak|maximum|C\s*max)[^0-9]*?(\d+[\.\d]*)[^0-9]*?(\d+[\.\d]*)?\s*h/i);
-  if (tmaxMatch) {
-    pk.tmax_text = tmaxMatch[0].trim();
-    pk.tmax_hours = tmaxMatch[2] ? `${tmaxMatch[1]}–${tmaxMatch[2]} h` : `${tmaxMatch[1]} h`;
-  }
-  const ssMatch = pkText.match(/steady[- ]state[^.]*?(\d+[\.\d]*)[^.]*?(day|week|hour)/i);
-  if (ssMatch) pk.steady_state = ssMatch[0].trim().replace(/\s+/g,' ');
-  pk.label_version = label.version;
-  pk.label_effective = label.effective_time;
-  pk.brand_name = (label.openfda?.brand_name || [])[0];
-  pk.generic_name = (label.openfda?.generic_name || [])[0];
-  pk.source_label_id = label.id;
+  const txt = (label.pharmacokinetics||[]).join(' ');
+  const m = txt.match(/half[- ]life[^0-9]*?(\d+[.]?\d*) to (\d+[.]?\d*)\s*h/i)||txt.match(/half[- ]life[^0-9]*?about\s*(\d+[.]?\d*)\s*h/i)||txt.match(/half[- ]life[^0-9]*?(\d+[.]?\d*)\s*h/i);
+  if (m) { pk.half_life_text = m[0].trim(); pk.half_life_hours = m[2] ? (parseFloat(m[1])+parseFloat(m[2]))/2 : parseFloat(m[1]); }
+  const tm = txt.match(/(?:peak|maximum|C\s*max)[^0-9]*?(\d+[.]?\d*)[^0-9]*?(\d+[.]?\d*)?\s*h/i);
+  if (tm) { pk.tmax_text = tm[0].trim(); pk.tmax_hours = tm[2] ? `${tm[1]}–${tm[2]} h` : `${tm[1]} h`; }
+  const sm = txt.match(/steady[- ]state[^.]*?(\d+[.]?\d*)[^.]*?(day|week|hour)/i);
+  if (sm) pk.steady_state = sm[0].trim().replace(/\s+/g,' ');
+  pk.label_v = label.version; pk.label_eff = label.effective_time;
+  pk.brand = (label.openfda?.brand_name||[])[0]; pk.generic = (label.openfda?.generic_name||[])[0]; pk.id = label.id;
   return pk;
 }
 
 async function fetchLabel(med) {
-  const searchTerm = med.brand_name_base || med.brand_name || med.generic_name;
-  if (!searchTerm) return;
+  const term = med.brand_name_base||med.brand_name||med.generic_name;
+  if (!term) return;
   try {
-    const labelEnv = await fdaFetch('drug/label.json', `openfda.brand_name:"${searchTerm}"`, 1);
-    pkParams = parsePKFromLabel(labelEnv);
-    if (pkParams?.half_life_hours) {
-      window._labelMeta = labelEnv.meta;
-      window._labelUrl = labelEnv.request_url;
+    const cached = await idbGet('labels', `label:${term}`);
+    if (cached && Date.now()-cached.fetched < 86400000) { pkParams = cached.data; }
+    else {
+      const env = await fdaFetch('drug/label.json', `openfda.brand_name:"${term}"`, 1);
+      pkParams = parsePK(env);
+      if (pkParams?.half_life_hours) {
+        await idbPut('labels', { key: `label:${term}`, data: pkParams, fetched: Date.now(), meta: env.meta, url: env.request_url });
+        window._labelMeta = env.meta; window._labelUrl = env.request_url;
+      }
     }
-  } catch (e) {
-    console.warn('Label fetch failed:', e.message);
-    pkParams = null;
-  }
-  renderDetail(selectedMed);
-  renderControls();
-  drawChart();
+  } catch(e) { console.warn('Label fetch failed:', e.message); pkParams = null; }
+  renderDetail(selectedMed); renderControls(); drawChart();
 }
 
-/* ── PK Simulation ────────────────────────── */
-function buildDoseSchedule(hours) {
-  schedule = [];
-  for (let t = 0; t < hours; t += intervalHours) {
-    schedule.push({ time: t, dose: doseMg });
-  }
-}
-
-function concentration(t, halfLife) {
-  let c = 0;
-  for (const dose of schedule) {
-    if (t >= dose.time) c += dose.dose * Math.pow(0.5, (t - dose.time) / halfLife);
-  }
-  return c;
-}
+/* ── Chart ──────────────────────── */
+function buildSchedule(h) { schedule=[]; for(let t=0;t<h;t+=intervalHours) schedule.push({time:t,dose:doseMg}); }
+function concentration(t,hl) { let c=0; for(const d of schedule) if(t>=d.time) c+=d.dose*Math.pow(0.5,(t-d.time)/hl); return c; }
 
 function drawChart() {
   const canvas = document.getElementById('pkChart');
   const parent = canvas.parentElement;
   if (parent.offsetParent === null) return;
   const rect = parent.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = window.devicePixelRatio||1;
   const W = rect.width, H = rect.height;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
+  canvas.width = W*dpr; canvas.height = H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
 
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-
-  const halfLife = pkParams?.half_life_hours || 26;
-  buildDoseSchedule(simHours);
-
+  const hl = pkParams?.half_life_hours||26;
+  buildSchedule(simHours);
   const narrow = W < 500;
-  const fontSize = narrow ? 14 : 12;
-  const fontSizeSmall = narrow ? 12 : 10;
-  const pad = {
-    top: narrow ? 44 : 36,
-    right: narrow ? 16 : 28,
-    bottom: narrow ? 62 : 52,
-    left: narrow ? 56 : 64
-  };
-  const pw = W - pad.left - pad.right;
-  const ph = H - pad.top - pad.bottom;
+  const fsa = narrow?13:11, fsb = narrow?11:10;
+  const pad = { top:narrow?44:36, right:narrow?18:30, bottom:narrow?64:52, left:narrow?58:66 };
+  const pw = W-pad.left-pad.right, ph = H-pad.top-pad.bottom;
 
   let maxC = doseMg;
-  if (schedule.length > 0) {
-    for (let t = 0; t <= simHours; t += 0.2) maxC = Math.max(maxC, concentration(t, halfLife));
-  }
-  const yMax = maxC * 1.15;
+  for(let t=0;t<=simHours;t+=0.2) maxC = Math.max(maxC, concentration(t,hl));
+  const yM = maxC*1.15;
+  function tx(t) { return pad.left+(t/simHours)*pw; }
+  function ty(c) { return pad.top+(1-c/yM)*ph; }
 
-  function tx(t) { return pad.left + (t / simHours) * pw; }
-  function ty(c) { return pad.top + (1 - c / yMax) * ph; }
-
-  const tickH = Math.max(1, Math.floor(simHours / (narrow ? 3 : 5)));
-  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 0.7;
-  ctx.fillStyle = '#999'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'center';
-  for (let i = 0; i <= simHours; i += tickH) {
-    const x = tx(i);
-    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
-    ctx.fillText(`${i}h`, x, H - pad.bottom + (narrow ? 20 : 16));
-  }
-
-  ctx.textAlign = 'right'; ctx.font = `${fontSizeSmall}px monospace`;
-  for (let i = 0; i <= 4; i++) {
-    const y = ty(yMax * i / 4);
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
-    const val = yMax * i / 4;
-    ctx.fillText(`${val < 10 ? val.toFixed(1) : val.toFixed(0)}`, pad.left - 6, y + (fontSizeSmall / 3));
-  }
+  const tickH = Math.max(1,Math.floor(simHours/(narrow?3:5)));
+  ctx.strokeStyle='#2a2a2a'; ctx.lineWidth=0.7; ctx.fillStyle='#999'; ctx.font=`${fsb}px monospace`; ctx.textAlign='center';
+  for(let i=0;i<=simHours;i+=tickH) { const x=tx(i); ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,H-pad.bottom); ctx.stroke(); ctx.fillText(i+'h',x,H-pad.bottom+(narrow?22:16)); }
+  ctx.textAlign='right'; ctx.font=`${fsb}px monospace`;
+  for(let i=0;i<=4;i++) { const y=ty(yM*i/4); ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke(); const v=yM*i/4; ctx.fillText((v<10?v.toFixed(1):v.toFixed(0)),pad.left-6,y+fsb/3); }
 
   if (pkParams?.half_life_hours) {
-    const minT = doseMg * 0.4, maxT = doseMg * 1.2;
-    ctx.fillStyle = 'rgba(76,175,80,0.12)';
-    ctx.fillRect(pad.left, ty(maxT), pw, ty(minT) - ty(maxT));
-    ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(76,175,80,0.4)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(pad.left, ty(minT)); ctx.lineTo(W - pad.right, ty(minT)); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pad.left, ty(maxT)); ctx.lineTo(W - pad.right, ty(maxT)); ctx.stroke();
+    const minT = doseMg*0.25, lowT = doseMg*0.4, highT = doseMg*1.0, maxT = doseMg*1.5;
+    ctx.fillStyle='rgba(207,102,121,0.08)'; ctx.fillRect(pad.left,ty(maxT),pw,ty(highT)-ty(maxT));
+    ctx.fillStyle='rgba(255,183,77,0.10)'; ctx.fillRect(pad.left,ty(highT),pw,ty(lowT)-ty(highT));
+    ctx.fillStyle='rgba(76,175,80,0.10)'; ctx.fillRect(pad.left,ty(lowT),pw,ty(minT)-ty(lowT));
+
+    [[minT,'rgba(76,175,80,0.5)'],[lowT,'rgba(76,175,80,0.3)'],[highT,'rgba(255,183,77,0.5)'],[maxT,'rgba(207,102,121,0.5)']].forEach(([v,c])=>{
+      ctx.setLineDash([3,5]); ctx.strokeStyle=c; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.moveTo(pad.left,ty(v)); ctx.lineTo(W-pad.right,ty(v)); ctx.stroke();
+    });
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(76,175,80,0.8)'; ctx.font = `${fontSizeSmall - 1}px monospace`; ctx.textAlign = 'left';
-    ctx.fillText(t('therapeuticWindow'), pad.left + 4, ty(maxT) - 6);
   }
 
-  schedule.forEach(d => {
-    const x = tx(d.time);
-    ctx.strokeStyle = 'rgba(144,202,249,0.3)'; ctx.lineWidth = 1;
-    ctx.setLineDash([2, 5]);
-    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#90caf9'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'center';
-    ctx.fillText(`${d.dose}mg`, x, H - pad.bottom + (narrow ? 40 : 32));
-  });
+  schedule.forEach(d=>{ const x=tx(d.time); ctx.strokeStyle='rgba(144,202,249,0.35)'; ctx.lineWidth=1; ctx.setLineDash([2,5]); ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,H-pad.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#90caf9'; ctx.font=`${fsb}px monospace`; ctx.textAlign='center'; ctx.fillText(d.dose+'mg',x,H-pad.bottom+(narrow?42:32)); });
 
-  ctx.strokeStyle = '#90caf9'; ctx.lineWidth = narrow ? 2.5 : 2;
-  ctx.shadowColor = 'rgba(144,202,249,0.3)'; ctx.shadowBlur = 8;
-  ctx.beginPath();
-  for (let t = 0; t <= simHours; t += 0.3) {
-    const x = tx(t), y = ty(concentration(t, halfLife));
-    if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.strokeStyle='#90caf9'; ctx.lineWidth=narrow?2.5:2;
+  ctx.shadowColor='rgba(144,202,249,0.3)'; ctx.shadowBlur=8;
+  ctx.beginPath(); for(let t=0;t<=simHours;t+=0.3){ const x=tx(t),y=ty(concentration(t,hl)); t===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke(); ctx.shadowBlur=0;
 
-  if (schedule.length > 0 && pkParams?.half_life_hours) {
-    const lastDose = schedule[schedule.length - 1].time;
-    const peakT = lastDose + (pkParams.tmax_hours ? parseFloat(pkParams.tmax_hours) : 5);
-    if (peakT <= simHours) {
-      const px = tx(peakT), py = ty(concentration(peakT, halfLife));
-      ctx.fillStyle = '#ff9800'; ctx.shadowColor = 'rgba(255,152,0,0.5)'; ctx.shadowBlur = 8;
-      ctx.beginPath(); ctx.arc(px, py, narrow ? 6 : 5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#ffb74d'; ctx.font = `${fontSize}px monospace`;
-      ctx.fillText(t('peak'), px + 8, py - 5);
-    }
+  if (schedule.length&&pkParams?.half_life_hours){
+    const lastDose=schedule[schedule.length-1].time;
+    const peakT=lastDose+(pkParams.tmax_hours?parseFloat(pkParams.tmax_hours):5);
+    if(peakT<=simHours){ const px=tx(peakT),py=ty(concentration(peakT,hl)); ctx.fillStyle='#ff9800'; ctx.shadowColor='rgba(255,152,0,0.5)'; ctx.shadowBlur=8; ctx.beginPath(); ctx.arc(px,py,narrow?6:5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.fillStyle='#ffb74d'; ctx.font=`${fsa}px monospace`; ctx.fillText(t('peak'),px+8,py-5); }
   }
 
-  ctx.fillStyle = '#a0a0a0'; ctx.font = `${fontSizeSmall}px monospace`; ctx.textAlign = 'right';
-  const tHalfLabel = pkParams?.half_life_hours ? `t½ = ${pkParams.half_life_hours} h  ·  ` : '';
-  ctx.fillText(`${tHalfLabel}${schedule.length} ${t('doses')}`, W - pad.right - 2, pad.top - 10);
+  ctx.fillStyle='#a0a0a0'; ctx.font=`${fsb}px monospace`; ctx.textAlign='right';
+  const label = (pkParams?.half_life_hours?`t½ = ${pkParams.half_life_hours} h  ·  `:'')+`${schedule.length} ${t('doses')}`;
+  ctx.fillText(label,W-pad.right-2,pad.top-10);
 
-  const metaEl = document.getElementById('metaFooter');
-  const ndcUp = window._searchMeta?.last_updated || '—';
-  const labelUp = window._labelMeta?.last_updated || '—';
-  metaEl.innerHTML = `
-    <span title="${window._labelUrl || ''}">${t('fdaNdc')}: ${ndcUp}</span>
-    <span title="${window._labelUrl || ''}">${t('label')}: ${labelUp}</span>
-    <span class="source-badge">${t('disclaimer')}</span>
+  document.getElementById('metaFooter').innerHTML = `
+    <span>${t('fdaNdc')}: ${window._searchMeta?.last_updated||'—'}</span>
+    <span>${t('label')}: ${window._labelMeta?.last_updated||'—'}</span>
+    <span style="color:var(--on-dim);">${t('disclaimer')}</span>
   `;
 }
 
 function renderControls() {
-  const el = document.getElementById('simControls');
-  el.innerHTML = `
+  document.getElementById('simControls').innerHTML = `
     <label>${t('dose')}<input type="number" id="doseInput" value="${doseMg}" min="1" max="2000" onchange="updateSim()"></label>
     <label>${t('mgEvery')}<input type="number" id="intervalInput" value="${intervalHours}" min="1" max="168" onchange="updateSim()"></label>
     <label>${t('hFor')}<input type="number" id="hoursInput" value="${simHours}" min="6" max="336" onchange="updateSim()">${t('h')}</label>
     <span class="spacer"></span>
-    <span class="sim-half">t½=${pkParams?.half_life_hours || 26}h</span>
+    <span style="font-size:0.72rem;color:var(--on-dim);">t½=${pkParams?.half_life_hours||26}h</span>
     <button onclick="updateSim()">${t('refresh')}</button>
   `;
 }
-
 function updateSim() {
-  doseMg = parseFloat(document.getElementById('doseInput')?.value) || doseMg;
-  intervalHours = parseFloat(document.getElementById('intervalInput')?.value) || intervalHours;
-  simHours = parseFloat(document.getElementById('hoursInput')?.value) || simHours;
+  doseMg = parseFloat(document.getElementById('doseInput')?.value)||doseMg;
+  intervalHours = parseFloat(document.getElementById('intervalInput')?.value)||intervalHours;
+  simHours = parseFloat(document.getElementById('hoursInput')?.value)||simHours;
   drawChart();
 }
 
 async function doSearch() {
-  const rawQ = document.getElementById('searchInput').value.trim();
-  if (!rawQ) return;
-  const q = resolveSearchTerm(rawQ);
+  const raw = document.getElementById('searchInput').value.trim();
+  if (!raw) return;
+  const q = resolveQuery(raw);
   const el = document.getElementById('panelList');
   el.innerHTML = `<div class="empty-state"><div class="spinner"></div><p>${t('searching')}</p></div>`;
   if (isMobile()) switchTab('list');
   try {
     const env = await fdaFetch('drug/ndc.json', `brand_name:"${q}"+generic_name:"${q}"`, 20);
-    window._searchResults = env.results;
-    window._searchMeta = env.meta;
-    window._searchUrl = env.request_url;
+    window._searchResults = env.results; window._searchMeta = env.meta; window._searchUrl = env.request_url;
     renderResults(env.results, env.meta);
-    if (env.results.length > 0) { selectMed(0); drawChart(); }
-  } catch (e) {
-    el.innerHTML = `<div class="empty-state"><p style="color:var(--error);">${t('error')}: ${e.message}</p></div>`;
-    console.error(e);
-  }
+    if (env.results.length>0) { selectMed(0); drawChart(); }
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p style="color:var(--error);">${t('error')}: ${e.message}</p></div>`; }
 }
 
-document.getElementById('searchInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doSearch();
-});
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
 
-let resizeTimer;
-let lastWasMobile = isMobile();
+let resizeTimer, lastWasMobile = isMobile();
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     const nowMobile = isMobile();
-    if (nowMobile && !lastWasMobile) {
-      switchTab(mobileTab || 'list');
-    } else if (!nowMobile) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
-    }
+    if (nowMobile&&!lastWasMobile) switchTab(mobileTab||'list');
+    else if (!nowMobile) document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('hidden'));
     lastWasMobile = nowMobile;
-    if (document.getElementById('panelChart').offsetParent !== null) drawChart();
+    if (document.getElementById('panelChart').offsetParent!==null) drawChart();
   }, 150);
 });
 
-loadZhDrugMap();
-updateAllTexts();
-renderControls();
-drawChart();
+function updateAll() {
+  document.getElementById('searchInput').placeholder = t('searchPH');
+  document.getElementById('langBtn').textContent = t('langLabel');
+  document.getElementById('langBtn').title = t('langTitle');
+  document.getElementById('tabLabelList').textContent = t('tabList');
+  document.getElementById('tabLabelDetail').textContent = t('tabDetail');
+  document.getElementById('tabLabelChart').textContent = t('tabChart');
+  document.getElementById('notifyBannerText').textContent = t('enableNotify');
+  document.documentElement.lang = L;
+  if (window._searchResults) renderResults(window._searchResults, window._searchMeta);
+  else document.getElementById('emptyHint').textContent = t('emptyHint');
+  if (selectedMed) renderDetail(selectedMed);
+  else document.getElementById('detailHint').textContent = t('detailHint');
+  renderMyMeds(); renderControls();
+  if (document.getElementById('panelChart')?.offsetParent !== null) drawChart();
+}
+
+async function loadZh() {
+  try { const r = await fetch('data/zh_drug_map.json'); if (r.ok) zhMap = await r.json(); } catch(e) {}
+}
+async function init() {
+  if ('serviceWorker' in navigator) {
+    try { const reg = await navigator.serviceWorker.register('/sw.js'); console.log('SW registered'); } catch(e) { console.warn('SW failed:', e); }
+  }
+  document.getElementById('notifyBanner').classList.toggle('visible', Notification.permission==='default');
+  notificationGranted = Notification.permission === 'granted';
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.action === 'navigate') { const url = e.data.url; if (url!=='/') window.location.href = url; }
+    });
+  }
+  await loadZh();
+  await loadMyMeds();
+  updateAll();
+  renderControls();
+  drawChart();
+}
+init();
 </script>
 </body>
 </html>
