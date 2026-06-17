@@ -1,0 +1,15 @@
+# Flutter / Dart
+.dart_tool/
+build/
+.packages
+.pub/
+*.iml
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
