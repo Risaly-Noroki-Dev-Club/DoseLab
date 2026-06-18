@@ -70,6 +70,9 @@ class AppLocalizations {
   String get tmax => _s('Tmax', '达峰时间');
   String get steadyState => _s('Steady state', '达稳态');
   String get pkData => _s('PK data', 'PK 数据');
+  String get pkParams => _s('PK parameters', '药物参数');
+  String get bodyData => _s('Body data', '身体数据');
+  String get tapForPk => _s('Tap for PK curve', '点击查看曲线');
   String get dose => _s('Dose', '剂量');
   String get every => _s('every', '每');
   String get hours => _s('hours', '小时');

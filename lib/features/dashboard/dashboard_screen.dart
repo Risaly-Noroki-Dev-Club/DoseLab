@@ -105,6 +105,15 @@ class DashboardScreen extends ConsumerWidget {
                                       ),
                                     ),
                                     const Spacer(),
+                                    Text(
+                                      t.tapForPk,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                    ),
                                     if (remaining != null)
                                       Text(
                                         '${t.nextDose}${remaining.formatShort()}',

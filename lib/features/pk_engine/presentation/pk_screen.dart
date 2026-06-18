@@ -32,73 +32,95 @@ class PkScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(t.pkData)),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const DisclaimerBanner(dense: true),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  _NumField(
-                    label: t.dose,
-                    value: s.doseMg,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .update(s.copyWith(doseMg: v)),
-                  ),
-                  _NumField(
-                    label: '${t.every} h',
-                    value: s.intervalHours,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .update(s.copyWith(intervalHours: v)),
-                  ),
-                  _NumField(
-                    label: t.simulationHours,
-                    value: s.simHours,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .update(s.copyWith(simHours: v)),
-                  ),
-                  _NumField(
-                    label: 't½',
-                    value: s.halfLifeHours,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .update(s.copyWith(halfLifeHours: v)),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+
+            // ── PK 参数 ───────────────────────────────────────
+            Text(
+              t.pkParams,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  _NumField(
-                    label: '${t.heightLabel} (${t.heightUnit})',
-                    value: state.heightCm,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .setHeight(v),
-                  ),
-                  _NumField(
-                    label: '${t.weightLabel} (${t.weightUnit})',
-                    value: state.weightKg,
-                    onChanged: (v) => ref
-                        .read(pkControllerProvider(drugId).notifier)
-                        .setWeight(v),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              children: [
+                _NumField(
+                  label: t.dose,
+                  suffix: 'mg',
+                  value: s.doseMg,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .update(s.copyWith(doseMg: v)),
+                ),
+                _NumField(
+                  label: t.every,
+                  suffix: 'h',
+                  value: s.intervalHours,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .update(s.copyWith(intervalHours: v)),
+                ),
+                _NumField(
+                  label: 'sim',
+                  suffix: 'h',
+                  value: s.simHours,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .update(s.copyWith(simHours: v)),
+                ),
+                _NumField(
+                  label: 't½',
+                  suffix: 'h',
+                  value: s.halfLifeHours,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .update(s.copyWith(halfLifeHours: v)),
+                ),
+              ],
             ),
+
+            const SizedBox(height: 20),
+
+            // ── 身体数据 ───────────────────────────────────────
+            Text(
+              t.bodyData,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              children: [
+                _NumField(
+                  label: t.heightLabel,
+                  suffix: t.heightUnit,
+                  value: state.heightCm,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .setHeight(v),
+                ),
+                _NumField(
+                  label: t.weightLabel,
+                  suffix: t.weightUnit,
+                  value: state.weightKg,
+                  onChanged: (v) => ref
+                      .read(pkControllerProvider(drugId).notifier)
+                      .setWeight(v),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 停药模拟 ───────────────────────────────────────
             Card(
-              margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -106,75 +128,77 @@ class PkScreen extends ConsumerWidget {
                       t.stopSimTitle,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     if (state.bsa != null)
                       Text(
                         '${t.bsaLabel}: ${state.bsa!.toStringAsFixed(2)} m²'
                         ' · ${state.doseMgPerKg?.toStringAsFixed(2) ?? '—'} mg/kg',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       '${t.currentPeak}: ${state.curve.peakValue.toStringAsFixed(1)} mg',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
                       '${t.minEffectiveConc}: ${threshold.toStringAsFixed(1)} mg',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     if (state.timeToThresholdHours != null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           const Icon(
                             Icons.timer_outlined,
-                            size: 16,
+                            size: 18,
                             color: Colors.orange,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               '${t.timeToThreshold}: ${state.timeToThresholdHours!.toStringAsFixed(1)} h',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 13,
+                                fontSize: 14,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ],
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       t.disclaimer,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Theme.of(context).colorScheme.error,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: PkChart(
-                  curve: state.curve,
-                  doseMg: s.doseMg,
-                  scheduleHours: schedule,
-                  thresholdX: state.timeToThresholdHours,
-                  thresholdY: threshold,
-                ),
+
+            const SizedBox(height: 20),
+
+            // ── 浓度曲线 ───────────────────────────────────────
+            SizedBox(
+              height: 320,
+              child: PkChart(
+                curve: state.curve,
+                doseMg: s.doseMg,
+                scheduleHours: schedule,
+                thresholdX: state.timeToThresholdHours,
+                thresholdY: threshold,
               ),
             ),
           ],
@@ -189,9 +213,11 @@ class _NumField extends StatefulWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.suffix,
   });
   final String label;
   final double value;
+  final String? suffix;
   final ValueChanged<double> onChanged;
 
   @override
@@ -199,8 +225,21 @@ class _NumField extends StatefulWidget {
 }
 
 class _NumFieldState extends State<_NumField> {
-  late final TextEditingController _c =
-      TextEditingController(text: widget.value.toStringAsFixed(0));
+  late TextEditingController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = TextEditingController(text: widget.value.toStringAsFixed(0));
+  }
+
+  @override
+  void didUpdateWidget(covariant _NumField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      _c.text = widget.value.toStringAsFixed(0);
+    }
+  }
 
   @override
   void dispose() {
@@ -215,7 +254,10 @@ class _NumFieldState extends State<_NumField> {
       child: TextField(
         controller: _c,
         keyboardType: TextInputType.number,
-        decoration: InputDecoration(labelText: widget.label),
+        decoration: InputDecoration(
+          labelText: widget.label,
+          suffixText: widget.suffix,
+        ),
         onSubmitted: (s) {
           final v = double.tryParse(s);
           if (v != null) widget.onChanged(v);

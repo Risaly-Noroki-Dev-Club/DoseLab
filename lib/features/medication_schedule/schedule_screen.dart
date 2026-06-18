@@ -34,6 +34,7 @@ class ScheduleScreen extends ConsumerWidget {
                   ),
                 );
                 return ListTile(
+                  leading: const Icon(Icons.show_chart, size: 28),
                   title: Text(m.brandName),
                   subtitle: Text(
                     '${m.doseMg.toStringAsFixed(0)} mg · '
