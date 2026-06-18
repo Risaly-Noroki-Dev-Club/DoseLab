@@ -135,8 +135,11 @@ class PkScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.timer_outlined,
-                              size: 16, color: Colors.orange,),
+                          const Icon(
+                            Icons.timer_outlined,
+                            size: 16,
+                            color: Colors.orange,
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(

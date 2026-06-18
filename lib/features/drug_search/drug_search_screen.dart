@@ -135,34 +135,7 @@ class _ResultsListState extends ConsumerState<_ResultsList> {
           trailing: FilledButton.tonal(
             onPressed: _adding != null || _added.contains(ndc)
                 ? null
-                : () async {
-                    setState(() => _adding = ndc);
-                    try {
-                      await ref
-                          .read(scheduleControllerProvider.notifier)
-                          .addFromFda(
-                            productNdc: ndc,
-                            brandName: brand.isEmpty ? generic : brand,
-                            genericName: generic,
-                            strength: strength,
-                          );
-                      if (!ctx.mounted) return;
-                      setState(() {
-                        _added.add(ndc);
-                        _adding = null;
-                      });
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(content: Text(t.added)),
-                      );
-                      context.go(Routes.dashboard);
-                    } catch (e) {
-                      if (!ctx.mounted) return;
-                      setState(() => _adding = null);
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(content: Text('$e')),
-                      );
-                    }
-                  },
+                : () => _showAddDialog(ctx, ndc, brand, generic, strength),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
               switchInCurve: Curves.easeOutBack,
@@ -182,6 +155,95 @@ class _ResultsListState extends ConsumerState<_ResultsList> {
           ),
         );
       },
+    );
+  }
+
+  void _showAddDialog(
+    BuildContext ctx,
+    String ndc,
+    String brand,
+    String generic,
+    String strength,
+  ) {
+    final doseC = TextEditingController(text: '50');
+    final intervalC = TextEditingController(text: '24');
+    showDialog(
+      context: ctx,
+      builder: (dCtx) => AlertDialog(
+        title: Text(brand),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (generic.isNotEmpty || strength.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  [
+                    if (generic.isNotEmpty) generic,
+                    if (strength.isNotEmpty) strength,
+                  ].join(' · '),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(dCtx).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            TextField(
+              controller: doseC,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Dose (mg)'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: intervalC,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Interval (h)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final dose = double.tryParse(doseC.text) ?? 50;
+              final interval = double.tryParse(intervalC.text) ?? 24;
+              Navigator.pop(dCtx);
+              setState(() => _adding = ndc);
+              try {
+                await ref.read(scheduleControllerProvider.notifier).addFromFda(
+                      productNdc: ndc,
+                      brandName: brand.isEmpty ? generic : brand,
+                      genericName: generic,
+                      strength: strength,
+                      doseMg: dose,
+                      intervalHours: interval,
+                    );
+                if (!ctx.mounted) return;
+                setState(() {
+                  _added.add(ndc);
+                  _adding = null;
+                });
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(ctx).added),
+                  ),
+                );
+                context.go(Routes.dashboard);
+              } catch (e) {
+                if (!ctx.mounted) return;
+                setState(() => _adding = null);
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(content: Text('$e')),
+                );
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 }

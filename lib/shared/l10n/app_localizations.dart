@@ -60,8 +60,11 @@ class AppLocalizations {
       );
   String get add => _s('Add', '添加');
   String get added => _s('Added', '已添加');
+  String get editDrug => _s('Edit', '编辑');
   String get remove => _s('Remove', '移除');
   String get logDose => _s('Log dose now', '记录此刻用药');
+  String get noDoseHistory => _s('No dose history yet', '暂无服药记录');
+  String get doseHistory => _s('History', '记录');
 
   String get halfLife => _s('Half-life', '半衰期');
   String get tmax => _s('Tmax', '达峰时间');

@@ -52,6 +52,23 @@ class ScheduleScreen extends ConsumerWidget {
                             .logDoseNow(m.id),
                       ),
                       IconButton(
+                        tooltip: t.doseHistory,
+                        icon: const Icon(Icons.list_alt),
+                        onPressed: () => context.push('/dose-history/${m.id}'),
+                      ),
+                      IconButton(
+                        tooltip: t.editDrug,
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _showEditDialog(
+                          ctx,
+                          m.id,
+                          m.brandName,
+                          m.doseMg,
+                          m.intervalHours,
+                          ref,
+                        ),
+                      ),
+                      IconButton(
                         tooltip: t.notifyEnable,
                         icon: Icon(
                           m.notify
@@ -76,4 +93,57 @@ class ScheduleScreen extends ConsumerWidget {
             ),
     );
   }
+}
+
+void _showEditDialog(
+  BuildContext ctx,
+  String id,
+  String name,
+  double dose,
+  double interval,
+  WidgetRef ref,
+) {
+  final doseC = TextEditingController(text: dose.toStringAsFixed(0));
+  final intervalC = TextEditingController(text: interval.toStringAsFixed(0));
+  showDialog(
+    context: ctx,
+    builder: (dCtx) => AlertDialog(
+      title: Text(name),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: doseC,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Dose (mg)'),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: intervalC,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Interval (h)'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dCtx),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final d = double.tryParse(doseC.text);
+            final iv = double.tryParse(intervalC.text);
+            if (d != null && d > 0 && iv != null && iv > 0) {
+              ref
+                  .read(scheduleControllerProvider.notifier)
+                  .updateDrug(id, doseMg: d, intervalHours: iv);
+            }
+            Navigator.pop(dCtx);
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 }

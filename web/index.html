@@ -56,9 +56,42 @@
       color: #5d6b7a;
       font-size: 14px;
     }
+
+    #offline-bar {
+      display: none;
+      background: #ff9800;
+      color: #fff;
+      text-align: center;
+      padding: 6px 12px;
+      font-size: 13px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+    }
+
+    #update-bar {
+      display: none;
+      background: #0175C2;
+      color: #fff;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 13px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      cursor: pointer;
+    }
+
+    #update-bar:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
+  <div id="offline-bar">&#9888; 当前处于离线状态，本地数据仍可使用</div>
+  <div id="update-bar">有新版本可用，点击刷新</div>
   <div id="loading">
     <div>
       <strong>DoseLab</strong><br>
@@ -82,11 +115,33 @@
           scope: '/',
         }).then(function (reg) {
           console.log('DoseLab SW registered:', reg.scope);
+
+          reg.addEventListener('updatefound', function () {
+            var newWorker = reg.installing;
+            newWorker.addEventListener('statechange', function () {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                var bar = document.getElementById('update-bar');
+                if (bar) bar.style.display = 'block';
+              }
+            });
+          });
         }).catch(function (err) {
           console.warn('DoseLab SW failed:', err);
         });
       });
+
+      var offlineBar = document.getElementById('offline-bar');
+      window.addEventListener('online', function () {
+        if (offlineBar) offlineBar.style.display = 'none';
+      });
+      window.addEventListener('offline', function () {
+        if (offlineBar) offlineBar.style.display = 'block';
+      });
     }
+
+    document.getElementById('update-bar')?.addEventListener('click', function () {
+      window.location.reload();
+    });
   </script>
 </body>
 </html>

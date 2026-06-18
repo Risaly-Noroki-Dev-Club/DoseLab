@@ -95,6 +95,23 @@ class ScheduleController extends Notifier<List<Drug>> {
     await _refresh();
   }
 
+  Future<void> updateDrug(
+    String id, {
+    double? doseMg,
+    double? intervalHours,
+  }) async {
+    final drug = state.firstWhere((d) => d.id == id);
+    await _db.upsertDrug(
+      drug
+          .copyWith(
+            doseMg: doseMg ?? drug.doseMg,
+            intervalHours: intervalHours ?? drug.intervalHours,
+          )
+          .toCompanion(true),
+    );
+    await _refresh();
+  }
+
   Future<void> _scheduleNext(Drug drug) async {
     final last = drug.lastDoseAt;
     if (last == null) return;

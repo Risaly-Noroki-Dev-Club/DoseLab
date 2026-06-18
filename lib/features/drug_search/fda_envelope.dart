@@ -24,6 +24,11 @@ class FdaEnvelope {
       (meta['results'] as Map?)?['total']?.toString() == null
           ? null
           : meta['last_updated']?.toString();
+
+  Map<String, dynamic> toJson() => {
+        'results': results,
+        'meta': meta,
+      };
 }
 
 /// Convenience: an empty envelope used when openFDA returns 404.

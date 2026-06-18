@@ -17,16 +17,32 @@ class _Hit(BaseModel):
 
 _RULES: list[dict] = [
     {
-        "a": "sertraline",
-        "b": "tramadol",
-        "severity": "severe",
+        "a": "sertraline", "b": "tramadol", "severity": "severe",
         "summary": "SSRI + tramadol increases serotonin syndrome risk. Reference only.",
     },
     {
-        "a": "warfarin",
-        "b": "ibuprofen",
-        "severity": "warning",
+        "a": "warfarin", "b": "ibuprofen", "severity": "warning",
         "summary": "NSAID can increase bleeding risk with warfarin. Reference only.",
+    },
+    {
+        "a": "fluoxetine", "b": "tramadol", "severity": "severe",
+        "summary": "SSRI + tramadol increases serotonin syndrome risk. Reference only.",
+    },
+    {
+        "a": "lithium", "b": "ibuprofen", "severity": "warning",
+        "summary": "NSAIDs can raise lithium levels. Reference only.",
+    },
+    {
+        "a": "aspirin", "b": "ibuprofen", "severity": "warning",
+        "summary": "Multiple NSAIDs increase GI bleed risk. Reference only.",
+    },
+    {
+        "a": "methotrexate", "b": "ibuprofen", "severity": "severe",
+        "summary": "NSAIDs can increase methotrexate levels. Reference only.",
+    },
+    {
+        "a": "omeprazole", "b": "clopidogrel", "severity": "warning",
+        "summary": "PPI may reduce clopidogrel activation. Reference only.",
     },
 ]
 

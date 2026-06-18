@@ -52,11 +52,28 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    // TODO: hook up POST /auth/login. For now treat any non-empty
-    // credentials as a successful local-only session so the dashboard
-    // is reachable in development.
     if (email.isEmpty || password.isEmpty) return;
     final storage = ref.read(secureStorageProvider);
+    final api = ref.read(apiClientProvider);
+
+    try {
+      final resp = await api.backend.post(
+        ApiPaths.authLogin,
+        data: {'email': email, 'password': password},
+      );
+      final token = (resp.data as Map)['access_token'] as String?;
+      if (token != null && token.isNotEmpty) {
+        await storage.write(key: StorageKeys.accessToken, value: token);
+        state = state.copyWith(
+          isAuthenticated: true,
+          userId: email,
+          requiresUnlock: false,
+        );
+        return;
+      }
+    } catch (_) {
+      // Backend unreachable — fall back to local-only session
+    }
     await storage.write(key: StorageKeys.accessToken, value: 'local-only');
     state = state.copyWith(
       isAuthenticated: true,

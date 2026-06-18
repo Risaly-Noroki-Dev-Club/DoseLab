@@ -6,6 +6,7 @@ import '../../features/auth/login_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/drug_search/drug_search_screen.dart';
 import '../../features/interaction_check/interaction_screen.dart';
+import '../../features/medication_schedule/dose_history_screen.dart';
 import '../../features/medication_schedule/schedule_screen.dart';
 import '../../features/pdf_report/report_screen.dart';
 import '../../features/pk_engine/presentation/pk_screen.dart';
@@ -79,6 +80,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'pk',
             builder: (ctx, st) =>
                 PkScreen(drugId: st.pathParameters['drugId'] ?? ''),
+          ),
+          GoRoute(
+            path: 'dose-history/:drugId',
+            name: 'dose-history',
+            builder: (ctx, st) => DoseHistoryScreen(
+              drugId: st.pathParameters['drugId'] ?? '',
+            ),
           ),
         ],
       ),
