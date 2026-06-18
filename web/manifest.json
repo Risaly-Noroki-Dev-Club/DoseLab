@@ -1,24 +1,38 @@
 {
-  "name": "DoseLab — Medication PK Lab",
-  "short_name": "DoseLab",
-  "description": "Medication self-observation tool with PK concentration visualization and dose reminders",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
-  "orientation": "any",
-  "icons": [
-    {
-      "src": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23121212'/%3E%3Cpath d='M96 48 L96 60 M76 44 L76 64 M116 44 L116 64' stroke='%2390caf9' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='96' cy='96' r='38' fill='none' stroke='%2390caf9' stroke-width='7'/%3E%3Cpath d='M72 96 Q96 54 120 96' fill='none' stroke='%2390caf9' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M96 134 L96 144' stroke='%2390caf9' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23121212'/%3E%3Cpath d='M256 128 L256 160 M200 112 L200 168 M312 112 L312 168' stroke='%2390caf9' stroke-width='20' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='256' cy='256' r='96' fill='none' stroke='%2390caf9' stroke-width='18'/%3E%3Cpath d='M192 256 Q256 144 320 256' fill='none' stroke='%2390caf9' stroke-width='16' stroke-linecap='round'/%3E%3Cpath d='M256 352 L256 384' stroke='%2390caf9' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+    "name": "DoseLab",
+    "short_name": "DoseLab",
+    "start_url": ".",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f8fbff",
+    "theme_color": "#0175C2",
+    "description": "本地优先用药记录与浓度曲线工具。",
+    "lang": "zh-CN",
+    "orientation": "portrait-primary",
+    "categories": ["health", "utilities"],
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
 }

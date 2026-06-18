@@ -1,0 +1,81 @@
+name: doselab
+description: Local-first medication self-observation with PK concentration visualization.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State & DI
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Routing
+  go_router: ^14.2.0
+
+  # Network
+  dio: ^5.5.0
+  dio_smart_retry: ^6.0.0
+  pretty_dio_logger: ^1.4.0
+
+  # Storage
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+  shared_preferences: ^2.3.0
+  flutter_secure_storage: ^9.2.2
+
+  # Codegen-friendly models
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Utilities
+  intl: ^0.20.2
+  collection: ^1.18.0
+  uuid: ^4.4.0
+  logger: ^2.4.0
+
+  # UI
+  fl_chart: ^0.68.0
+  flutter_local_notifications: ^17.2.2
+
+  # WebDAV sync
+  webdav_client: ^1.2.2
+
+  # PDF report
+  pdf: ^3.11.1
+  printing: ^5.13.1
+  share_plus: ^9.0.0
+
+  # JSON
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  build_runner: ^2.4.11
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.0
+  drift_dev: ^2.18.0
+  custom_lint: ^0.6.4
+  riverpod_lint: ^2.3.10
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/data/zh_drug_map.json
+    - assets/fonts/Roboto-Regular.ttf
+    - assets/fonts/Roboto-Medium.ttf
+    - assets/fonts/DroidSansFallbackFull.ttf

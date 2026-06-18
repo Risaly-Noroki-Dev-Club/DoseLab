@@ -1,11 +1,24 @@
 # Flutter / Dart
 .dart_tool/
-build/
+.flutter-plugins
+.flutter-plugins-dependencies
 .packages
 .pub/
+build/
 *.iml
+*.iws
 .idea/
 .vscode/
+
+# Generated
+*.g.dart
+*.freezed.dart
+lib/shared/l10n/generated/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Flutter.podspec
+ios/Pods/
+android/.gradle/
+android/local.properties
 
 # OS
 .DS_Store
@@ -13,10 +26,20 @@ Thumbs.db
 
 # Environment
 .env
+.env.local
+*.local
 
 # Query output (experimental, cached)
 /data/
 
-# Python
+# Python / FastAPI
 __pycache__/
-
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.sqlite
+*.sqlite3
+backend/.env
+backend/alembic/versions/*.py
+!backend/alembic/versions/.gitkeep

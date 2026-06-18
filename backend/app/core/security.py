@@ -1,0 +1,43 @@
+"""Password hashing and JWT helpers."""
+
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+from .config import get_settings
+
+_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_settings = get_settings()
+
+
+def hash_password(plain: str) -> str:
+    return _pwd.hash(plain)
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    return _pwd.verify(plain, hashed)
+
+
+def create_access_token(subject: str, extra: dict[str, Any] | None = None) -> str:
+    now = datetime.now(timezone.utc)
+    payload: dict[str, Any] = {
+        "sub": subject,
+        "iat": now,
+        "exp": now + timedelta(minutes=_settings.jwt_expires_minutes),
+    }
+    if extra:
+        payload.update(extra)
+    return jwt.encode(
+        payload, _settings.secret_key, algorithm=_settings.jwt_algorithm
+    )
+
+
+def decode_token(token: str) -> dict[str, Any] | None:
+    try:
+        return jwt.decode(
+            token, _settings.secret_key, algorithms=[_settings.jwt_algorithm]
+        )
+    except JWTError:
+        return None
