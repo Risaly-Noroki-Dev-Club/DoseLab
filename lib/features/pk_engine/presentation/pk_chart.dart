@@ -81,22 +81,22 @@ class PkChart extends StatelessWidget {
             HorizontalRangeAnnotation(
               y1: minT,
               y2: lowT,
-              color: PkBandColors.safe.withValues(alpha: 0.10),
+              color: PkBandColors.safe.withOpacity(0.10),
             ),
             HorizontalRangeAnnotation(
               y1: lowT,
               y2: highT,
-              color: PkBandColors.safe.withValues(alpha: 0.18),
+              color: PkBandColors.safe.withOpacity(0.18),
             ),
             HorizontalRangeAnnotation(
               y1: highT,
               y2: maxT,
-              color: PkBandColors.warn.withValues(alpha: 0.18),
+              color: PkBandColors.warn.withOpacity(0.18),
             ),
             HorizontalRangeAnnotation(
               y1: maxT,
               y2: maxY.toDouble(),
-              color: PkBandColors.toxic.withValues(alpha: 0.18),
+              color: PkBandColors.toxic.withOpacity(0.18),
             ),
           ],
         ),
@@ -105,7 +105,7 @@ class PkChart extends StatelessWidget {
             for (final t in scheduleHours)
               VerticalLine(
                 x: t,
-                color: Colors.blueAccent.withValues(alpha: 0.35),
+                color: Colors.blueAccent.withOpacity(0.35),
                 strokeWidth: 1,
                 dashArray: const [2, 4],
               ),
@@ -121,7 +121,7 @@ class PkChart extends StatelessWidget {
             if (tY != null && tY > 0)
               HorizontalLine(
                 y: tY,
-                color: Colors.orange.withValues(alpha: 0.5),
+                color: Colors.orange.withOpacity(0.5),
                 strokeWidth: 1.4,
                 dashArray: const [4, 4],
                 label: HorizontalLineLabel(
@@ -144,7 +144,7 @@ class PkChart extends StatelessWidget {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: const Color(0xFF90CAF9).withValues(alpha: 0.08),
+              color: const Color(0xFF90CAF9).withOpacity(0.08),
             ),
           ),
         ],
