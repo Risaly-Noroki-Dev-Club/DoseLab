@@ -231,7 +231,7 @@ class _ResultsListState extends ConsumerState<_ResultsList> {
                     content: Text(AppLocalizations.of(ctx).added),
                   ),
                 );
-                context.go(Routes.dashboard);
+                ctx.go(Routes.dashboard);
               } catch (e) {
                 if (!ctx.mounted) return;
                 setState(() => _adding = null);

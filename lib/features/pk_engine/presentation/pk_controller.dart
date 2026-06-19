@@ -63,7 +63,7 @@ class PkController extends FamilyNotifier<PkViewState?, String> {
   static const _calc = PkCalculator();
 
   @override
-  PkViewState? build(String drugId) {
+  PkViewState? build(String arg) {
     _load();
     return null;
   }
