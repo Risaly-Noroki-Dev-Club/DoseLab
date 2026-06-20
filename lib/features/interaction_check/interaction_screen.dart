@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/l10n/app_localizations.dart';
@@ -28,40 +28,94 @@ class InteractionScreen extends ConsumerWidget {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.interactionsTitle)),
-      body: Column(
+    return CupertinoPageScaffold(
+      navigationBar:
+          CupertinoNavigationBar(middle: Text(t.interactionsTitle)),
+      child: SafeArea(
+        child: Column(
+          children: [
+            const DisclaimerBanner(dense: true),
+            Expanded(
+              child: hits.isEmpty
+                  ? EmptyState(
+                      message: t.interactionsNone,
+                      icon: CupertinoIcons.checkmark_circle,
+                    )
+                  : ListView(
+                      children: [
+                        for (var i = 0; i < hits.length; i++) ...[
+                          if (i > 0)
+                            Container(
+                              height: 0.5,
+                              color: CupertinoDynamicColor.resolve(
+                                CupertinoColors.separator,
+                                context,
+                              ),
+                              margin: const EdgeInsets.only(left: 56),
+                            ),
+                          _InteractionRow(hit: hits[i]),
+                        ],
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InteractionRow extends StatelessWidget {
+  const _InteractionRow({required this.hit});
+  final _Hit hit;
+
+  @override
+  Widget build(BuildContext context) {
+    final summary =
+        Localizations.localeOf(context).languageCode == 'zh'
+            ? hit.rule.summaryZh
+            : hit.rule.summary;
+    final severityColor = switch (hit.rule.severity) {
+      InteractionSeverity.caution => CupertinoColors.systemYellow,
+      InteractionSeverity.warning => CupertinoColors.systemOrange,
+      InteractionSeverity.severe => CupertinoColors.systemRed,
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DisclaimerBanner(dense: true),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              CupertinoIcons.exclamationmark_triangle,
+              size: 24,
+              color: severityColor,
+            ),
+          ),
+          const SizedBox(width: 14),
           Expanded(
-            child: hits.isEmpty
-                ? EmptyState(
-                    message: t.interactionsNone,
-                    icon: Icons.check_circle_outline,
-                  )
-                : ListView.separated(
-                    itemCount: hits.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (ctx, i) {
-                      final h = hits[i];
-                      final summary =
-                          Localizations.localeOf(context).languageCode == 'zh'
-                              ? h.rule.summaryZh
-                              : h.rule.summary;
-                      return ListTile(
-                        leading: Icon(
-                          Icons.warning_amber_outlined,
-                          color: switch (h.rule.severity) {
-                            InteractionSeverity.caution => Colors.amber,
-                            InteractionSeverity.warning => Colors.orange,
-                            InteractionSeverity.severe => Colors.red,
-                          },
-                        ),
-                        title: Text('${h.a}  ↔  ${h.b}'),
-                        subtitle: Text(summary),
-                      );
-                    },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${hit.a}  \u2194  ${hit.b}',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  summary,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoTheme.of(context)
+                            .textTheme
+                            .textStyle
+                            .color ??
+                        CupertinoColors.secondaryLabel,
                   ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

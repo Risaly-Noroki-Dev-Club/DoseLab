@@ -17,14 +17,9 @@ class StorageKeys {
 
 class ApiPaths {
   const ApiPaths._();
-  static const authLogin = '/auth/login';
-  static const authRegister = '/auth/register';
-  static const authRefresh = '/auth/refresh';
   static const drugs = '/drugs';
   static const pkCompute = '/pk/compute';
   static const interactions = '/interactions/check';
-  static const syncPush = '/sync/push';
-  static const syncPull = '/sync/pull';
   static const reportGenerate = '/reports/generate';
 }
 

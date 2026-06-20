@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
@@ -47,13 +47,23 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(t.reportTitle)),
-      body: Center(
-        child: FilledButton.icon(
-          onPressed: _busy ? null : _shareReport,
-          icon: const Icon(Icons.picture_as_pdf_outlined),
-          label: Text(t.reportTitle),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: Text(t.reportTitle)),
+      child: SafeArea(
+        child: Center(
+          child: _busy
+              ? const CupertinoActivityIndicator(radius: 18)
+              : CupertinoButton.filled(
+                  onPressed: _shareReport,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(CupertinoIcons.doc_text),
+                      const SizedBox(width: 8),
+                      Text(t.reportTitle),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

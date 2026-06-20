@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/di/providers.dart';
@@ -16,75 +17,277 @@ class SettingsScreen extends ConsumerWidget {
     final s = ref.watch(settingsControllerProvider);
     final auth = ref.watch(authControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.settingsTitle)),
-      body: ListView(
-        children: [
-          ListTile(
-            title: Text(t.settingsLanguage),
-            trailing: DropdownButton<Locale>(
-              value: s.locale,
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem(value: Locale('zh'), child: Text('中文')),
-              ],
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(settingsControllerProvider.notifier).setLocale(v);
-                }
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: Text(t.settingsTitle)),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            const SizedBox(height: 12),
+            _SettingsRow(
+              label: t.settingsLanguage,
+              value: s.locale.languageCode == 'zh' ? '中文' : 'English',
+              onTap: () => _showLanguagePicker(context, ref, s),
+            ),
+            _Separator(),
+            _SettingsRow(
+              label: t.settingsTheme,
+              value: switch (s.themeMode) {
+                ThemeMode.system => t.themeSystem,
+                ThemeMode.light => t.themeLight,
+                ThemeMode.dark => t.themeDark,
               },
+              onTap: () => _showThemePicker(context, ref, s, t),
             ),
-          ),
-          ListTile(
-            title: Text(t.settingsTheme),
-            trailing: DropdownButton<ThemeMode>(
-              value: s.themeMode,
-              items: [
-                DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text(t.themeSystem),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text(t.themeLight),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text(t.themeDark),
-                ),
-              ],
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(settingsControllerProvider.notifier).setThemeMode(v);
-                }
-              },
+            _Separator(),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.appLock),
+                        Text(
+                          t.appLockSubtitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: CupertinoTheme.of(context)
+                                    .textTheme
+                                    .textStyle
+                                    .color ??
+                                CupertinoColors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  CupertinoSwitch(
+                    value: auth.requiresUnlock,
+                    onChanged: (v) => ref
+                        .read(authControllerProvider.notifier)
+                        .setLockEnabled(v),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SwitchListTile(
-            title: Text(t.appLock),
-            subtitle: Text(t.appLockSubtitle),
-            value: auth.requiresUnlock,
-            onChanged: (v) =>
-                ref.read(authControllerProvider.notifier).setLockEnabled(v),
-          ),
-          ListTile(
-            title: Text(t.settingsWebDav),
-            subtitle: Text(t.webDavSubtitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              _showWebDavDialog(context, ref);
-            },
-          ),
-          if (auth.isAuthenticated)
-            ListTile(
-              title: Text(t.signOut),
-              leading: const Icon(Icons.logout),
-              onTap: () => ref.read(authControllerProvider.notifier).signOut(),
+            _Separator(),
+            _SettingsRow(
+              label: t.settingsWebDav,
+              value: t.webDavSubtitle,
+              showArrow: true,
+              onTap: () => _showWebDavDialog(context, ref),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _SettingsRow extends StatelessWidget {
+  const _SettingsRow({
+    required this.label,
+    required this.value,
+    required this.onTap,
+    this.leading,
+    this.showArrow = false,
+    this.isDestructive = false,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+  final IconData? leading;
+  final bool showArrow;
+  final bool isDestructive;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+        child: Row(
+          children: [
+            if (leading != null) ...[
+              Icon(
+                leading,
+                size: 22,
+                color: isDestructive ? CupertinoColors.systemRed : null,
+              ),
+              const SizedBox(width: 14),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isDestructive ? CupertinoColors.systemRed : null,
+                ),
+              ),
+            ),
+            if (value.isNotEmpty)
+              Text(
+                value,
+                style: TextStyle(
+                  color: CupertinoTheme.of(context)
+                          .textTheme
+                          .textStyle
+                          .color ??
+                      CupertinoColors.secondaryLabel,
+                ),
+              ),
+            if (showArrow) ...[
+              const SizedBox(width: 4),
+              const Icon(
+                CupertinoIcons.chevron_right,
+                size: 18,
+                color: CupertinoColors.tertiaryLabel,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Separator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 0.5,
+      color: CupertinoDynamicColor.resolve(
+        CupertinoColors.separator,
+        context,
+      ),
+      margin: const EdgeInsets.only(left: 20),
+    );
+  }
+}
+
+void _showLanguagePicker(
+  BuildContext context,
+  WidgetRef ref,
+  SettingsState s,
+) {
+  showCupertinoModalPopup(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(AppLocalizations.of(context).settingsLanguage),
+      actions: [
+        CupertinoActionSheetAction(
+          onPressed: () {
+            ref
+                .read(settingsControllerProvider.notifier)
+                .setLocale(const Locale('en'));
+            Navigator.pop(ctx);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('English'),
+              if (s.locale.languageCode == 'en')
+                const Icon(CupertinoIcons.checkmark_alt, size: 20),
+            ],
+          ),
+        ),
+        CupertinoActionSheetAction(
+          onPressed: () {
+            ref
+                .read(settingsControllerProvider.notifier)
+                .setLocale(const Locale('zh'));
+            Navigator.pop(ctx);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('中文'),
+              if (s.locale.languageCode == 'zh')
+                const Icon(CupertinoIcons.checkmark_alt, size: 20),
+            ],
+          ),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        isDefaultAction: true,
+        onPressed: () => Navigator.pop(ctx),
+        child: const Text('Cancel'),
+      ),
+    ),
+  );
+}
+
+void _showThemePicker(
+  BuildContext context,
+  WidgetRef ref,
+  SettingsState s,
+  AppLocalizations t,
+) {
+  showCupertinoModalPopup(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(t.settingsTheme),
+      actions: [
+        CupertinoActionSheetAction(
+          onPressed: () {
+            ref
+                .read(settingsControllerProvider.notifier)
+                .setThemeMode(ThemeMode.system);
+            Navigator.pop(ctx);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(t.themeSystem),
+              if (s.themeMode == ThemeMode.system)
+                const Icon(CupertinoIcons.checkmark_alt, size: 20),
+            ],
+          ),
+        ),
+        CupertinoActionSheetAction(
+          onPressed: () {
+            ref
+                .read(settingsControllerProvider.notifier)
+                .setThemeMode(ThemeMode.light);
+            Navigator.pop(ctx);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(t.themeLight),
+              if (s.themeMode == ThemeMode.light)
+                const Icon(CupertinoIcons.checkmark_alt, size: 20),
+            ],
+          ),
+        ),
+        CupertinoActionSheetAction(
+          onPressed: () {
+            ref
+                .read(settingsControllerProvider.notifier)
+                .setThemeMode(ThemeMode.dark);
+            Navigator.pop(ctx);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(t.themeDark),
+              if (s.themeMode == ThemeMode.dark)
+                const Icon(CupertinoIcons.checkmark_alt, size: 20),
+            ],
+          ),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        isDefaultAction: true,
+        onPressed: () => Navigator.pop(ctx),
+        child: const Text('Cancel'),
+      ),
+    ),
+  );
 }
 
 void _showWebDavDialog(BuildContext context, WidgetRef ref) {
@@ -92,7 +295,6 @@ void _showWebDavDialog(BuildContext context, WidgetRef ref) {
   final userC = TextEditingController();
   final passC = TextEditingController();
 
-  // Pre-fill from secure storage
   final storage = ref.read(secureStorageProvider);
   storage.read(key: StorageKeys.webdavUrl).then((v) {
     if (v != null) urlC.text = v;
@@ -101,39 +303,48 @@ void _showWebDavDialog(BuildContext context, WidgetRef ref) {
     if (v != null) userC.text = v;
   });
 
-  showDialog(
+  showCupertinoDialog(
     context: context,
-    builder: (dCtx) => AlertDialog(
+    builder: (dCtx) => CupertinoAlertDialog(
       title: const Text('WebDAV'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
+          CupertinoTextField(
             controller: urlC,
-            decoration: const InputDecoration(
-              labelText: 'URL',
-              hintText: 'https://your-server.com/remote.php/dav',
+            placeholder: 'URL',
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(CupertinoIcons.link, size: 20),
             ),
           ),
-          const SizedBox(height: 8),
-          TextField(
+          const SizedBox(height: 10),
+          CupertinoTextField(
             controller: userC,
-            decoration: const InputDecoration(labelText: 'User'),
+            placeholder: 'User',
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(CupertinoIcons.person, size: 20),
+            ),
           ),
-          const SizedBox(height: 8),
-          TextField(
+          const SizedBox(height: 10),
+          CupertinoTextField(
             controller: passC,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
+            placeholder: 'Password',
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(CupertinoIcons.lock, size: 20),
+            ),
           ),
         ],
       ),
       actions: [
-        TextButton(
+        CupertinoDialogAction(
           onPressed: () => Navigator.pop(dCtx),
           child: const Text('Cancel'),
         ),
-        FilledButton(
+        CupertinoDialogAction(
           onPressed: () async {
             final url = urlC.text.trim();
             final user = userC.text.trim();
@@ -145,7 +356,10 @@ void _showWebDavDialog(BuildContext context, WidgetRef ref) {
               await storage.write(key: StorageKeys.webdavUser, value: user);
             }
             if (pass.isNotEmpty) {
-              await storage.write(key: StorageKeys.webdavPassword, value: pass);
+              await storage.write(
+                key: StorageKeys.webdavPassword,
+                value: pass,
+              );
             }
             if (dCtx.mounted) Navigator.pop(dCtx);
           },

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key, required this.message, this.icon});
@@ -8,7 +8,8 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dim = Theme.of(context).colorScheme.onSurfaceVariant;
+    final dim = CupertinoTheme.of(context).textTheme.textStyle.color ??
+        CupertinoColors.secondaryLabel;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),

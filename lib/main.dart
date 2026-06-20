@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,19 +23,25 @@ class DoseLabApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsControllerProvider);
-    return MaterialApp.router(
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final brightness = switch (settings.themeMode) {
+      ThemeMode.system => platformBrightness,
+      ThemeMode.light => Brightness.light,
+      ThemeMode.dark => Brightness.dark,
+    };
+    final theme = brightness == Brightness.dark
+        ? AppTheme.dark()
+        : AppTheme.light();
+
+    return CupertinoApp.router(
       title: Env.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: settings.themeMode,
-      locale: settings.locale,
+      theme: theme,
       routerConfig: router,
+      locale: settings.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
     );

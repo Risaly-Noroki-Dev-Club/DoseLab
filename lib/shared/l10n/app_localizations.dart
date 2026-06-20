@@ -45,12 +45,7 @@ class AppLocalizations {
   String get tabInteractions => _s('Check', '检查');
   String get tabSettings => _s('Settings', '设置');
 
-  String get login => _s('Sign in', '登录');
-  String get loginGuest => _s('Continue offline', '继续离线使用');
-  String get loginEmail => _s('Email', '邮箱');
-  String get loginPassword => _s('Password', '密码');
-  String get loginOAuthGoogle => _s('Continue with Google', '使用 Google 登录');
-
+  String get unlock => _s('Unlock', '解锁');
   String get unlockTitle => _s('Unlock DoseLab', '解锁 DoseLab');
 
   String get myMedications => _s('My Medications', '我的药品');

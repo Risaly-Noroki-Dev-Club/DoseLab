@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../../core/config/constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -81,22 +81,22 @@ class PkChart extends StatelessWidget {
             HorizontalRangeAnnotation(
               y1: minT,
               y2: lowT,
-              color: PkBandColors.safe.withOpacity(0.10),
+              color: PkBandColors.safe.withValues(alpha:0.10),
             ),
             HorizontalRangeAnnotation(
               y1: lowT,
               y2: highT,
-              color: PkBandColors.safe.withOpacity(0.18),
+              color: PkBandColors.safe.withValues(alpha:0.18),
             ),
             HorizontalRangeAnnotation(
               y1: highT,
               y2: maxT,
-              color: PkBandColors.warn.withOpacity(0.18),
+              color: PkBandColors.warn.withValues(alpha:0.18),
             ),
             HorizontalRangeAnnotation(
               y1: maxT,
               y2: maxY.toDouble(),
-              color: PkBandColors.toxic.withOpacity(0.18),
+              color: PkBandColors.toxic.withValues(alpha:0.18),
             ),
           ],
         ),
@@ -105,14 +105,14 @@ class PkChart extends StatelessWidget {
             for (final t in scheduleHours)
               VerticalLine(
                 x: t,
-                color: Colors.blueAccent.withOpacity(0.35),
+                color: CupertinoColors.activeBlue.withValues(alpha:0.35),
                 strokeWidth: 1,
                 dashArray: const [2, 4],
               ),
             if (tX != null && tX < curve.times.last)
               VerticalLine(
                 x: tX,
-                color: Colors.orange,
+                color: CupertinoColors.systemOrange,
                 strokeWidth: 1.8,
                 dashArray: const [4, 4],
               ),
@@ -121,13 +121,13 @@ class PkChart extends StatelessWidget {
             if (tY != null && tY > 0)
               HorizontalLine(
                 y: tY,
-                color: Colors.orange.withOpacity(0.5),
-                strokeWidth: 1.4,
-                dashArray: const [4, 4],
-                label: HorizontalLineLabel(
-                  show: true,
-                  labelResolver: (_) => '${tY.toStringAsFixed(0)} mg',
-                  style: const TextStyle(fontSize: 10, color: Colors.orange),
+                 color: CupertinoColors.systemOrange.withValues(alpha:0.5),
+                 strokeWidth: 1.4,
+                 dashArray: const [4, 4],
+                 label: HorizontalLineLabel(
+                   show: true,
+                   labelResolver: (_) => '${tY.toStringAsFixed(0)} mg',
+                   style: const TextStyle(fontSize: 10, color: CupertinoColors.systemOrange),
                 ),
               ),
           ],
@@ -144,7 +144,7 @@ class PkChart extends StatelessWidget {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: const Color(0xFF90CAF9).withOpacity(0.08),
+              color: const Color(0xFF90CAF9).withValues(alpha:0.08),
             ),
           ),
         ],

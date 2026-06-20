@@ -1,105 +1,95 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-/// Material You themes for light/dark. The dark palette intentionally
-/// matches the original PWA (background #121212, primary #90caf9) so
-/// returning users see a familiar look.
+/// Cupertino (iOS-native) themes for light/dark. The primary accent
+/// (activeBlue) matches the original blue from the Material 3 seed.
 class AppTheme {
   const AppTheme._();
 
-  static const _seed = Color(0xFF90CAF9);
-
-  static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(seedColor: _seed);
-    return _base(scheme);
+  static CupertinoThemeData light() {
+    return const CupertinoThemeData(
+      brightness: Brightness.light,
+      primaryColor: Color(0xFF007AFF),
+      scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
+      barBackgroundColor: Color(0xF2F2F2F7),
+      textTheme: CupertinoTextThemeData(
+        navTitleTextStyle: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.41,
+        ),
+        navLargeTitleTextStyle: TextStyle(
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.37,
+        ),
+        actionTextStyle: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.41,
+        ),
+        tabLabelTextStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.24,
+        ),
+        pickerTextStyle: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+        ),
+        dateTimePickerTextStyle: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+        ),
+      ),
+    );
   }
 
-  static ThemeData dark() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: _seed,
+  static CupertinoThemeData dark() {
+    return const CupertinoThemeData(
       brightness: Brightness.dark,
-    ).copyWith(
-      surface: const Color(0xFF1E1E1E),
-    );
-    return _base(scheme).copyWith(
-      scaffoldBackgroundColor: const Color(0xFF121212),
-    );
-  }
-
-  static ThemeData _base(ColorScheme scheme) {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      fontFamily: 'Roboto',
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: _NoTransitionsBuilder(),
-          TargetPlatform.iOS: _NoTransitionsBuilder(),
-          TargetPlatform.linux: _NoTransitionsBuilder(),
-          TargetPlatform.macOS: _NoTransitionsBuilder(),
-          TargetPlatform.windows: _NoTransitionsBuilder(),
-        },
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surface,
-        foregroundColor: scheme.onSurface,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        centerTitle: false,
-      ),
-      cardTheme: CardTheme(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: scheme.outlineVariant),
+      primaryColor: Color(0xFF0A84FF),
+      scaffoldBackgroundColor: CupertinoColors.black,
+      barBackgroundColor: Color(0xFF1C1C1E),
+      textTheme: CupertinoTextThemeData(
+        navTitleTextStyle: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.41,
         ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+        navLargeTitleTextStyle: TextStyle(
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.37,
         ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+        actionTextStyle: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.41,
         ),
-        isDense: true,
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: scheme.surface,
-        indicatorColor: scheme.primaryContainer,
-        labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
-            fontSize: 12,
-            fontWeight: states.contains(WidgetState.selected)
-                ? FontWeight.w600
-                : FontWeight.w400,
-          ),
+        tabLabelTextStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.24,
+        ),
+        pickerTextStyle: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+        ),
+        dateTimePickerTextStyle: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
         ),
       ),
     );
-  }
-}
-
-class _NoTransitionsBuilder extends PageTransitionsBuilder {
-  const _NoTransitionsBuilder();
-
-  @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    return child;
   }
 }
 
 /// Semantic colours used by the PK chart bands. Kept outside
-/// [ColorScheme] because these convey clinical meaning, not branding.
+/// the theme because these convey clinical meaning, not branding.
 class PkBandColors {
   const PkBandColors._();
   static const safe = Color(0xFF81C784);

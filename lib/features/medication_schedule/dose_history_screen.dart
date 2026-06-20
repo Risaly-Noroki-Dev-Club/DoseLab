@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -30,7 +30,7 @@ class _DoseHistoryScreenState extends ConsumerState<DoseHistoryScreen> {
     final drugs = await db.getAllDrugs();
     _drug = drugs.where((d) => d.id == widget.drugId).firstOrNull;
     final logs = await db.doseLogsFor(widget.drugId);
-    logs.sort((a, b) => b.takenAt.compareTo(a.takenAt)); // newest first
+    logs.sort((a, b) => b.takenAt.compareTo(a.takenAt));
     if (mounted) {
       setState(() {
         _logs = logs;
@@ -44,38 +44,79 @@ class _DoseHistoryScreenState extends ConsumerState<DoseHistoryScreen> {
     final t = AppLocalizations.of(context);
     final df = DateFormat('yyyy-MM-dd HH:mm');
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_drug?.brandName ?? t.logDose),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(_drug?.brandName ?? t.logDose),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _logs.isEmpty
-              ? Center(child: Text(t.noDoseHistory))
-              : ListView.separated(
-                  itemCount: _logs.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (ctx, i) {
-                    final l = _logs[i];
-                    return ListTile(
-                      title: Text(
-                        '${l.doseMg.toStringAsFixed(0)} mg',
-                      ),
-                      subtitle: Text(df.format(l.takenAt)),
-                      trailing: l.note != null && l.note!.isNotEmpty
-                          ? Text(
-                              l.note!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+      child: SafeArea(
+        child: _loading
+            ? const Center(child: CupertinoActivityIndicator())
+            : _logs.isEmpty
+                ? Center(child: Text(t.noDoseHistory))
+                : ListView(
+                    children: [
+                      for (var i = 0; i < _logs.length; i++) ...[
+                        if (i > 0)
+                          Container(
+                            height: 0.5,
+                            color: CupertinoDynamicColor.resolve(
+                              CupertinoColors.separator,
+                              context,
+                            ),
+                            margin: const EdgeInsets.only(left: 16),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${_logs[i].doseMg.toStringAsFixed(0)} mg',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      df.format(_logs[i].takenAt),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: CupertinoTheme.of(context)
+                                                .textTheme
+                                                .textStyle
+                                                .color ??
+                                            CupertinoColors.secondaryLabel,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            )
-                          : null,
-                    );
-                  },
-                ),
+                              if (_logs[i].note != null &&
+                                  _logs[i].note!.isNotEmpty)
+                                Text(
+                                  _logs[i].note!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: CupertinoTheme.of(context)
+                                            .textTheme
+                                            .textStyle
+                                            .color ??
+                                        CupertinoColors.secondaryLabel,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+      ),
     );
   }
 }

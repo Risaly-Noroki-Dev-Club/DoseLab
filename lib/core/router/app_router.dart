@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -43,49 +44,86 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.login,
         name: 'login',
-        builder: (_, __) => const LoginScreen(),
+        pageBuilder: (context, state) => CupertinoPage<void>(
+          key: state.pageKey,
+          name: state.name,
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: Routes.dashboard,
         name: 'dashboard',
-        builder: (_, __) => const DashboardScreen(),
+        pageBuilder: (context, state) => CupertinoPage<void>(
+          key: state.pageKey,
+          name: state.name,
+          child: const DashboardScreen(),
+        ),
         routes: [
           GoRoute(
             path: 'search',
             name: 'search',
-            builder: (_, __) => const DrugSearchScreen(),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: const DrugSearchScreen(),
+            ),
           ),
           GoRoute(
             path: 'schedule',
             name: 'schedule',
-            builder: (_, __) => const ScheduleScreen(),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: const ScheduleScreen(),
+            ),
           ),
           GoRoute(
             path: 'interactions',
             name: 'interactions',
-            builder: (_, __) => const InteractionScreen(),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: const InteractionScreen(),
+            ),
           ),
           GoRoute(
             path: 'report',
             name: 'report',
-            builder: (_, __) => const ReportScreen(),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: const ReportScreen(),
+            ),
           ),
           GoRoute(
             path: 'settings',
             name: 'settings',
-            builder: (_, __) => const SettingsScreen(),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: const SettingsScreen(),
+            ),
           ),
           GoRoute(
             path: 'pk/:drugId',
             name: 'pk',
-            builder: (ctx, st) =>
-                PkScreen(drugId: st.pathParameters['drugId'] ?? ''),
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: PkScreen(
+                drugId: state.pathParameters['drugId'] ?? '',
+              ),
+            ),
           ),
           GoRoute(
             path: 'dose-history/:drugId',
             name: 'dose-history',
-            builder: (ctx, st) => DoseHistoryScreen(
-              drugId: st.pathParameters['drugId'] ?? '',
+            pageBuilder: (context, state) => CupertinoPage<void>(
+              key: state.pageKey,
+              name: state.name,
+              child: DoseHistoryScreen(
+                drugId: state.pathParameters['drugId'] ?? '',
+              ),
             ),
           ),
         ],

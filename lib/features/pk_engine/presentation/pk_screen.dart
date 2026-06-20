@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/constants.dart';
@@ -18,9 +18,9 @@ class PkScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context);
 
     if (state == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(t.pkData)),
-        body: const LoadingIndicator(),
+      return CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(middle: Text(t.pkData)),
+        child: const SafeArea(child: LoadingIndicator()),
       );
     }
     final s = state.settings;
@@ -29,128 +29,133 @@ class PkScreen extends ConsumerWidget {
     ];
     final threshold = s.doseMg * AppConstants.dangerThresholdMultiplier;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.pkData)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const DisclaimerBanner(dense: true),
-            const SizedBox(height: 12),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: Text(t.pkData)),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DisclaimerBanner(dense: true),
+              const SizedBox(height: 16),
 
-            // ── PK 参数 ───────────────────────────────────────
-            Text(
-              t.pkParams,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 10,
-              children: [
-                _NumField(
-                  label: t.dose,
-                  suffix: 'mg',
-                  value: s.doseMg,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .update(s.copyWith(doseMg: v)),
-                ),
-                _NumField(
-                  label: t.every,
-                  suffix: 'h',
-                  value: s.intervalHours,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .update(s.copyWith(intervalHours: v)),
-                ),
-                _NumField(
-                  label: 'sim',
-                  suffix: 'h',
-                  value: s.simHours,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .update(s.copyWith(simHours: v)),
-                ),
-                _NumField(
-                  label: 't½',
-                  suffix: 'h',
-                  value: s.halfLifeHours,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .update(s.copyWith(halfLifeHours: v)),
-                ),
-              ],
-            ),
+              _SectionHeader(title: t.pkParams),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  _NumField(
+                    label: t.dose,
+                    suffix: 'mg',
+                    value: s.doseMg,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .update(s.copyWith(doseMg: v)),
+                  ),
+                  _NumField(
+                    label: t.every,
+                    suffix: 'h',
+                    value: s.intervalHours,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .update(s.copyWith(intervalHours: v)),
+                  ),
+                  _NumField(
+                    label: 'sim',
+                    suffix: 'h',
+                    value: s.simHours,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .update(s.copyWith(simHours: v)),
+                  ),
+                  _NumField(
+                    label: 't\u00bd',
+                    suffix: 'h',
+                    value: s.halfLifeHours,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .update(s.copyWith(halfLifeHours: v)),
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 24),
+              _SectionHeader(title: t.bodyData),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  _NumField(
+                    label: t.heightLabel,
+                    suffix: t.heightUnit,
+                    value: state.heightCm,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .setHeight(v),
+                  ),
+                  _NumField(
+                    label: t.weightLabel,
+                    suffix: t.weightUnit,
+                    value: state.weightKg,
+                    onChanged: (v) => ref
+                        .read(pkControllerProvider(drugId).notifier)
+                        .setWeight(v),
+                  ),
+                ],
+              ),
 
-            // ── 身体数据 ───────────────────────────────────────
-            Text(
-              t.bodyData,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 10,
-              children: [
-                _NumField(
-                  label: t.heightLabel,
-                  suffix: t.heightUnit,
-                  value: state.heightCm,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .setHeight(v),
+              const SizedBox(height: 24),
+              _SectionHeader(title: t.stopSimTitle),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoDynamicColor.resolve(
+                    CupertinoColors.secondarySystemGroupedBackground,
+                    context,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                _NumField(
-                  label: t.weightLabel,
-                  suffix: t.weightUnit,
-                  value: state.weightKg,
-                  onChanged: (v) => ref
-                      .read(pkControllerProvider(drugId).notifier)
-                      .setWeight(v),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── 停药模拟 ───────────────────────────────────────
-            Card(
-              child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      t.stopSimTitle,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 10),
                     if (state.bsa != null)
                       Text(
-                        '${t.bsaLabel}: ${state.bsa!.toStringAsFixed(2)} m²'
-                        ' · ${state.doseMgPerKg?.toStringAsFixed(2) ?? '—'} mg/kg',
+                        '${t.bsaLabel}: ${state.bsa!.toStringAsFixed(2)} m\u00b2'
+                        ' \u00b7 ${state.doseMgPerKg?.toStringAsFixed(2) ?? '\u2014'} mg/kg',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: CupertinoTheme.of(context)
+                                  .textTheme
+                                  .textStyle
+                                  .color ??
+                              CupertinoColors.secondaryLabel,
                         ),
                       ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       '${t.currentPeak}: ${state.curve.peakValue.toStringAsFixed(1)} mg',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: CupertinoTheme.of(context)
+                                .textTheme
+                                .textStyle
+                                .color ??
+                            CupertinoColors.secondaryLabel,
                       ),
                     ),
                     Text(
                       '${t.minEffectiveConc}: ${threshold.toStringAsFixed(1)} mg',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: CupertinoTheme.of(context)
+                                .textTheme
+                                .textStyle
+                                .color ??
+                            CupertinoColors.secondaryLabel,
                       ),
                     ),
                     if (state.timeToThresholdHours != null) ...[
@@ -158,9 +163,9 @@ class PkScreen extends ConsumerWidget {
                       Row(
                         children: [
                           const Icon(
-                            Icons.timer_outlined,
+                            CupertinoIcons.clock,
                             size: 18,
-                            color: Colors.orange,
+                            color: CupertinoColors.systemOrange,
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -180,29 +185,48 @@ class PkScreen extends ConsumerWidget {
                       t.disclaimer,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: CupertinoTheme.of(context)
+                                .textTheme
+                                .textStyle
+                                .color ??
+                            CupertinoColors.secondaryLabel,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
-
-            // ── 浓度曲线 ───────────────────────────────────────
-            SizedBox(
-              height: 320,
-              child: PkChart(
-                curve: state.curve,
-                doseMg: s.doseMg,
-                scheduleHours: schedule,
-                thresholdX: state.timeToThresholdHours,
-                thresholdY: threshold,
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 320,
+                child: PkChart(
+                  curve: state.curve,
+                  doseMg: s.doseMg,
+                  scheduleHours: schedule,
+                  thresholdX: state.timeToThresholdHours,
+                  thresholdY: threshold,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -251,12 +275,19 @@ class _NumFieldState extends State<_NumField> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 110,
-      child: TextField(
+      child: CupertinoTextField(
         controller: _c,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: widget.label,
-          suffixText: widget.suffix,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        placeholder: widget.label,
+        suffix: Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: Text(
+            widget.suffix ?? '',
+            style: TextStyle(
+              color: CupertinoTheme.of(context).textTheme.textStyle.color ??
+                  CupertinoColors.secondaryLabel,
+            ),
+          ),
         ),
         onSubmitted: (s) {
           final v = double.tryParse(s);
